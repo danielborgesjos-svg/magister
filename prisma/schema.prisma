@@ -1,0 +1,915 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Multi-Tenant ─────────────────────────────────────────────────────────────
+
+model Tenant {
+  id              String   @id @default(cuid())
+  nome            String
+  documento       String?
+  planoId         String?
+  status          String   @default("ativo")
+  configJson      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  plano                 Plano? @relation(fields: [planoId], references: [id])
+  users                 User[]
+  assinaturas           AssinaturaSaaS[]
+  modulos               TenantModulo[]
+  faturas               FaturaSaaS[]
+  chamados              ChamadoSuporte[]
+
+  clientes              Cliente[]
+  unidades              Unidade[]
+  enderecos             Endereco[]
+  areasTecnicas         AreaTecnica[]
+  ativos                Ativo[]
+  produtos              Produto[]
+  vendas                Venda[]
+  itensVenda            ItemVenda[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+  negociacoes           Negociacao[]
+  tarefas               Tarefa[]
+  agendamentos          Agendamento[]
+  integracoes           Integracao[]
+  conversasWA           ConversaWA[]
+  fluxosIA              FluxoIA[]
+  campanhas             Campanha[]
+  equipes               Equipe[]
+  tecnicos              Tecnico[]
+  veiculos              Veiculo[]
+  manutencoesVeiculo    ManutencaoVeiculo[]
+  ordensServico         OrdemServico[]
+  osExecucoes           OsExecucao[]
+  osTransicoes          OsTransicao[]
+  osNaoConformidades    OsNaoConformidade[]
+  osRetornos            OsRetorno[]
+  osModelos             OsModelo[]
+  osItensMaterial       OsItemMaterial[]
+  osFotos               OsFoto[]
+  osCobrancas           OsCobranca[]
+  recorrenciasOS        RecorrenciaOS[]
+  filtrosSalvos         FiltroSalvo[]
+  agentLogs             AgentLog[]
+  acoesPendentesIA      AcaoPendenteIA[]
+  contatos              Contato[]
+  contratos             Contrato[]
+  usuariosPortal        UsuarioPortal[]
+  mensagensWA           MensagemWA[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  nome      String
+  email     String   @unique
+  senha     String?
+  role      String   @default("user") // admin, user, viewer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── SaaS Control Center Models ───────────────────────────────────────────────
+
+model Plano {
+  id            String   @id @default(cuid())
+  nome          String
+  preco         Float
+  limiteUsuarios Int     @default(1)
+  limiteOS      Int      @default(50)
+  limiteIA      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenants       Tenant[]
+  assinaturas   AssinaturaSaaS[]
+}
+
+model AssinaturaSaaS {
+  id            String   @id @default(cuid())
+  tenantId      String
+  planoId       String
+  status        String   @default("ativa") // ativa, cancelada, inadimplente
+  dataInicio    DateTime @default(now())
+  dataFim       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plano         Plano    @relation(fields: [planoId], references: [id])
+  faturas       FaturaSaaS[]
+  @@index([tenantId])
+}
+
+model ModuloSaaS {
+  id            String   @id @default(cuid())
+  codigo        String   @unique // ex: whatsapp_360
+  nome          String
+  descricao     String?
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  tenants       TenantModulo[]
+}
+
+model TenantModulo {
+  id            String   @id @default(cuid())
+  tenantId      String
+  moduloId      String
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modulo        ModuloSaaS @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  @@unique([tenantId, moduloId])
+  @@index([tenantId])
+}
+
+model FaturaSaaS {
+  id            String   @id @default(cuid())
+  tenantId      String
+  assinaturaId  String
+  valor         Float
+  status        String   @default("pendente") // pendente, paga, vencida
+  vencimento    DateTime
+  pagamentoEm   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assinatura    AssinaturaSaaS @relation(fields: [assinaturaId], references: [id], onDelete: Restrict)
+  @@index([tenantId])
+}
+
+model ChamadoSuporte {
+  id            String   @id @default(cuid())
+  tenantId      String
+  solicitanteId String?
+  assunto       String
+  descricao     String
+  status        String   @default("aberto") // aberto, em_andamento, resolvido
+  prioridade    String   @default("media")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── ERP Models (JAMPER) ──────────────────────────────────────────────────────
+
+model Cliente {
+  id             String    @id @default(cuid())
+  tenantId       String
+  nome           String
+  razaoSocial    String?
+  nomeFantasia   String?
+  cnpjCpf        String?
+  empresa        String?
+  segmento       String?
+  classificacao  String?
+  origem         String?
+  perfil         String?
+  categoria      String?
+  cidade         String?
+  score          Int       @default(50)
+  status         String    @default("lead")
+  totalComprado  Float     @default(0)
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unidades       Unidade[]
+  contatos       Contato[]
+  contratos      Contrato[]
+  vendas         Venda[]
+  negociacoes    Negociacao[]
+  tarefas        Tarefa[]
+  ordensServico  OrdemServico[]
+  usuariosPortal UsuarioPortal[]
+  @@index([tenantId])
+}
+
+model Unidade {
+  id            String    @id @default(cuid())
+  tenantId      String
+  clienteId     String
+  nome          String    // Matriz, Filial 1, etc
+  cnpj          String?
+  observacoes   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  enderecos     Endereco[]
+  ordensServico OrdemServico[]
+  @@index([tenantId])
+}
+
+model Endereco {
+  id            String    @id @default(cuid())
+  tenantId      String
+  unidadeId     String
+  tipo          String
+  cep           String?
+  logradouro    String
+  numero        String
+  complemento   String?
+  bairro        String
+  cidade        String
+  uf            String
+  referencia    String?
+  observacoes   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unidade       Unidade      @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  areasTecnicas AreaTecnica[]
+  ordensServico OrdemServico[]
+  @@index([tenantId])
+}
+
+model AreaTecnica {
+  id            String    @id @default(cuid())
+  tenantId      String
+  enderecoId    String
+  nome          String    // Casa de Máquinas, Telhado, etc
+  observacoes   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  endereco      Endereco  @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
+  ativos        Ativo[]
+  @@index([tenantId])
+}
+
+model Ativo {
+  id             String    @id @default(cuid())
+  tenantId       String
+  areaTecnicaId  String
+  nome           String
+  marca          String?
+  modelo         String?
+  numeroSerie    String?
+  dataInstalacao DateTime?
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  areaTecnica    AreaTecnica  @relation(fields: [areaTecnicaId], references: [id], onDelete: Cascade)
+  ordensServico  OrdemServico[]
+  @@index([tenantId])
+}
+
+model Contato {
+  id          String    @id @default(cuid())
+  tenantId    String
+  clienteId   String
+  nome        String
+  setor       String?
+  telefone    String?
+  whatsapp    String?
+  email       String?
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model Contrato {
+  id              String    @id @default(cuid())
+  tenantId        String
+  clienteId       String?
+  numero          String?
+  titulo          String
+  tipo            String    @default("cliente")  // cliente, fornecedor, servico, parceria, outro
+  categoria       String?   // Ex: Manutenção, Limpeza, TI, Aluguel
+  parteNome       String?   // Nome do fornecedor/parceiro quando não é cliente
+  parteDoc        String?   // CNPJ/CPF da parte
+  valor           Float     @default(0)
+  periodicidade   String    @default("mensal")   // mensal, trimestral, semestral, anual, unico
+  status          String    @default("ativo")    // ativo, encerrado, suspenso, em_renovacao, rascunho
+  dataInicio      DateTime
+  dataFim         DateTime?
+  alertaRenovacao Int?      // dias antes do vencimento para alertar
+  arquivoPath     String?   // caminho do PDF armazenado
+  arquivoNome     String?   // nome original do arquivo
+  arquivoSize     Int?      // tamanho em bytes
+  observacoes     String?
+  responsavel     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente         Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  ordensServico   OrdemServico[]
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+
+model UsuarioPortal {
+  id            String    @id @default(cuid())
+  tenantId      String
+  clienteId     String
+  nome          String
+  email         String    @unique
+  senha         String?
+  role          String    @default("admin") // admin (toda a empresa) ou viewer (unidade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Comercial e Vendas ───────────────────────────────────────────────────────
+
+model Produto {
+  id               String    @id @default(cuid())
+  tenantId         String
+  nome             String
+  categoria        String
+  preco            Float
+  custo            Float
+  margem           Float
+  estoqueAtual     Int       @default(0)
+  estoqueMinimo    Int       @default(5)
+  mediaVendaMensal Int       @default(0)
+  scorePotencial   Int       @default(50)
+  risco            String    @default("ok")
+  status           String    @default("ativo")
+  diasParado       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  itensVenda       ItemVenda[]
+  itensMateriaisOS OsItemMaterial[]
+  @@index([tenantId])
+}
+
+model Venda {
+  id              String      @id @default(cuid())
+  tenantId        String
+  clienteId       String?
+  vendedor        String?
+  total           Float
+  status          String      @default("fechado")
+  metodoPagamento String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente         Cliente?    @relation(fields: [clienteId], references: [id])
+  itens           ItemVenda[]
+  @@index([tenantId])
+}
+
+model ItemVenda {
+  id         String   @id @default(cuid())
+  tenantId   String
+  vendaId    String
+  produtoId  String
+  quantidade Int
+  preco      Float
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  venda      Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  @@index([tenantId])
+}
+
+model LancamentoFinanceiro {
+  id         String   @id @default(cuid())
+  tenantId   String
+  descricao  String
+  valor      Float
+  tipo       String   // receita, despesa
+  status     String   // pago, pendente, vencido
+  dataVenc   DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cobrancas  OsCobranca[]
+  @@index([tenantId])
+}
+
+model Negociacao {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  clienteId          String
+  vendedor           String
+  valor              Float
+  status             String    @default("novo_lead")
+  probabilidade      Int       @default(50)
+  previsaoFechamento DateTime?
+  tags               String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente            Cliente   @relation(fields: [clienteId], references: [id])
+  @@index([tenantId])
+}
+
+model Tarefa {
+  id          String    @id @default(cuid())
+  tenantId    String
+  titulo      String
+  descricao   String?
+  responsavel String
+  prioridade  String    @default("media")
+  status      String    @default("a_fazer")
+  prazo       DateTime?
+  origem      String    @default("manual")
+  clienteId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente     Cliente?  @relation(fields: [clienteId], references: [id])
+  @@index([tenantId])
+}
+
+model Agendamento {
+  id            String    @id @default(cuid())
+  tenantId      String
+  titulo        String
+  descricao     String?
+  data          DateTime
+  duracao       Int       @default(60)
+  tipo          String    @default("reuniao")
+  status        String    @default("agendado")
+  responsavel   String?   @default("Sistema")
+  clienteId     String?
+  googleEventId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Operacional ──────────────────────────────────────────────────────────────
+
+model Equipe {
+  id          String    @id @default(cuid())
+  tenantId    String
+  nome        String
+  status      String    @default("ativa")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tecnicos    Tecnico[]
+  @@index([tenantId])
+}
+
+model Tecnico {
+  id            String    @id @default(cuid())
+  tenantId      String
+  equipeId      String?
+  nome          String
+  email         String    
+  telefone      String?
+  status        String    @default("ativo")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  equipe        Equipe?   @relation(fields: [equipeId], references: [id], onDelete: SetNull)
+  ordensServico OrdemServico[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Veiculo {
+  id            String    @id @default(cuid())
+  tenantId      String
+  placa         String
+  modelo        String
+  marca         String?
+  ano           Int?
+  status        String    @default("ativo")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  manutencoes   ManutencaoVeiculo[]
+  ordensServico OrdemServico[]
+  @@index([tenantId])
+}
+
+model ManutencaoVeiculo {
+  id            String    @id @default(cuid())
+  tenantId      String
+  veiculoId     String
+  descricao     String
+  data          DateTime
+  custo         Float     @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  veiculo       Veiculo   @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model OrdemServico {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  numeroOS            Int
+  clienteId           String
+  unidadeId           String
+  enderecoId          String
+  tecnicoId           String
+  contratoId          String?
+  ativoId             String?
+  veiculoId           String?
+  modeloOsId          String?
+  recorrenciaId       String?
+  titulo              String
+  tipoAtendimento     String
+  status              String    @default("aguardando_agendamento")
+  prioridade          String    @default("media") // critica, alta, media, baixa
+  dataAgendada        DateTime?
+  prazoSLA            DateTime?
+  valorPrevisto       Float     @default(0)
+  valorFinal          Float?
+  custoMaoObra        Float     @default(0)
+  custoMaterial       Float     @default(0)
+  statusFaturamento   String    @default("nao_faturada") // nao_faturada, faturada, paga
+  motivoCancelamento  String?
+  equipesJson         String?   // JSON array de equipeId[]
+  observacoesInternas String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  tenant              Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente             Cliente          @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  unidade             Unidade          @relation(fields: [unidadeId], references: [id], onDelete: Restrict)
+  endereco            Endereco         @relation(fields: [enderecoId], references: [id], onDelete: Restrict)
+  tecnico             Tecnico          @relation(fields: [tecnicoId], references: [id], onDelete: Restrict)
+  contrato            Contrato?        @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  ativo               Ativo?           @relation(fields: [ativoId], references: [id], onDelete: SetNull)
+  veiculo             Veiculo?         @relation(fields: [veiculoId], references: [id], onDelete: SetNull)
+  execucao            OsExecucao?
+  transicoes          OsTransicao[]
+  naoConformidades    OsNaoConformidade[]
+  retornos            OsRetorno[]      @relation("OSOrigem")
+  retornoOrigem       OsRetorno?       @relation("OSRetorno")
+  itensMateriaisOS    OsItemMaterial[]
+  fotos               OsFoto[]
+  cobranca            OsCobranca?
+
+  @@unique([tenantId, numeroOS])
+  @@index([tenantId])
+  @@index([tenantId, clienteId])
+  @@index([tenantId, status])
+  @@index([tenantId, tecnicoId])
+}
+
+model OsExecucao {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  ordemServicoId      String    @unique
+  dataInicio          DateTime?
+  dataFim             DateTime?
+  latitude            String?
+  longitude           String?
+  checklistJson       String?   // JSON: [{id, descricao, concluido, observacao}]
+  observacoesTecnicas String?
+  materiaisJson       String?   // legado — substituído por OsItemMaterial
+  fotosJson           String?   // legado — substituído por OsFoto
+  assinaturaBase64    String?
+  checklistPct        Int       @default(0) // 0-100%
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  tenant              Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico        OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Histórico de transições de status (auditoria) ────────────────────────────
+
+model OsTransicao {
+  id             String   @id @default(cuid())
+  tenantId       String
+  ordemServicoId String
+  statusDe       String
+  statusPara     String
+  motivo         String?
+  usuarioId      String?
+  criadoEm       DateTime @default(now())
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+  @@index([ordemServicoId])
+}
+
+// ─── Não Conformidades ────────────────────────────────────────────────────────
+
+model OsNaoConformidade {
+  id              String   @id @default(cuid())
+  tenantId        String
+  ordemServicoId  String
+  descricao       String
+  categoria       String   @default("tecnica") // tecnica, seguranca, qualidade, cliente
+  gravidade       String   @default("media")   // critica, alta, media, baixa
+  acaoCorretiva   String?
+  responsavelId   String?
+  resolvidaEm     DateTime?
+  status          String   @default("aberta") // aberta, em_tratamento, resolvida
+  fotosJson       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico    OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+  @@index([ordemServicoId])
+}
+
+// ─── Retornos ─────────────────────────────────────────────────────────────────
+
+model OsRetorno {
+  id             String   @id @default(cuid())
+  tenantId       String
+  osOrigemId     String
+  osRetornoId    String   @unique
+  motivo         String
+  responsabilidade String @default("empresa") // empresa, cliente, terceiro
+  createdAt      DateTime @default(now())
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  osOrigem       OrdemServico @relation("OSOrigem", fields: [osOrigemId], references: [id], onDelete: Cascade)
+  osRetorno      OrdemServico @relation("OSRetorno", fields: [osRetornoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Modelos / Templates de OS ────────────────────────────────────────────────
+
+model OsModelo {
+  id              String   @id @default(cuid())
+  tenantId        String
+  nome            String
+  descricao       String?
+  tipoAtendimento String
+  checklistJson   String?  // checklist pré-definido
+  materiaisJson   String?  // materiais padrão
+  prazoSLAHoras   Int      @default(24)
+  valorPadrao     Float    @default(0)
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Itens de Material da OS (normalizado) ────────────────────────────────────
+
+model OsItemMaterial {
+  id             String   @id @default(cuid())
+  tenantId       String
+  ordemServicoId String
+  produtoId      String?
+  descricao      String
+  quantidade     Float    @default(1)
+  unidade        String   @default("un")
+  custoUnitario  Float    @default(0)
+  valorUnitario  Float    @default(0)
+  origem         String   @default("estoque") // estoque, externo
+  createdAt      DateTime @default(now())
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  produto        Produto?     @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+  @@index([tenantId])
+  @@index([ordemServicoId])
+}
+
+// ─── Evidências fotográficas com metadados ────────────────────────────────────
+
+model OsFoto {
+  id             String   @id @default(cuid())
+  tenantId       String
+  ordemServicoId String
+  url            String
+  tipo           String   @default("execucao") // antes, execucao, depois, nc
+  descricao      String?
+  latitude       String?
+  longitude      String?
+  capturadoEm    DateTime @default(now())
+  usuarioId      String?
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+  @@index([ordemServicoId])
+}
+
+// ─── Cobrança gerada a partir de OS ──────────────────────────────────────────
+
+model OsCobranca {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  ordemServicoId       String   @unique
+  lancamentoId         String?  @unique
+  valorFaturado        Float
+  dataEmissao          DateTime @default(now())
+  dataPagamento        DateTime?
+  status               String   @default("emitida") // emitida, paga, cancelada
+  observacoes          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico         OrdemServico         @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  lancamento           LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+  @@index([tenantId])
+}
+
+// ─── Recorrências de OS ───────────────────────────────────────────────────────
+
+model RecorrenciaOS {
+  id              String   @id @default(cuid())
+  tenantId        String
+  modeloOsId      String?
+  clienteId       String
+  titulo          String
+  periodicidade   String   // diaria, semanal, quinzenal, mensal, trimestral, semestral, anual
+  diaSemana       Int?     // 0=dom..6=sab
+  diaMes          Int?     // 1-31
+  proximaExecucao DateTime
+  ultimaExecucao  DateTime?
+  ativa           Boolean  @default(true)
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+// ─── Filtros salvos por usuário/módulo ────────────────────────────────────────
+
+model FiltroSalvo {
+  id         String   @id @default(cuid())
+  tenantId   String
+  usuarioId  String
+  modulo     String   // os, financeiro, clientes, etc.
+  nome       String
+  filtroJson String   // JSON com os filtros aplicados
+  padrao     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+  @@index([tenantId, usuarioId, modulo])
+}
+
+// ─── Integrações e IA ─────────────────────────────────────────────────────────
+
+model Integracao {
+  id            String    @id @default(cuid())
+  tenantId      String
+  provedor      String    
+  accessToken   String?
+  refreshToken  String?
+  expiraEm      DateTime?
+  configuracoes String?
+  ativo         Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, provedor])
+  @@index([tenantId])
+}
+
+model ConversaWA {
+  id             String       @id @default(cuid())
+  tenantId       String
+  telefone       String
+  nome           String
+  empresa        String?
+  status         String       @default("novo")
+  atendenteId    String?
+  clienteId      String?
+  ultimaMensagem String?
+  unreadCount    Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  mensagens      MensagemWA[]
+  @@index([tenantId])
+}
+
+model MensagemWA {
+  id          String      @id @default(cuid())
+  tenantId    String
+  conversaId  String
+  tipo        String      // entrada, saida
+  conteudo    String
+  statusEnvio String?     // enviado, entregue, lido
+  createdAt   DateTime    @default(now())
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversa    ConversaWA  @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model FluxoIA {
+  id          String    @id @default(cuid())
+  tenantId    String
+  nome        String
+  descricao   String?
+  ativo       Boolean   @default(false)
+  gatilho     String
+  disparos    Int       @default(0)
+  resolucoes  Int       @default(0)
+  nodesJson   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model Campanha {
+  id              String    @id @default(cuid())
+  tenantId        String
+  nome            String
+  descricao       String?
+  status          String    @default("rascunho")
+  canal           String    @default("whatsapp")
+  contatos        Int       @default(0)
+  criadaPorIA     Boolean   @default(false)
+  receitaGerada   Float     @default(0)
+  receitaEsperada Float     @default(0)
+  mensagemPadrao  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model AgentLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  sessionId   String
+  mensagem    String
+  agente      String
+  acao        String
+  entidades   String   
+  resultado   String   
+  sucesso     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
+
+model AcaoPendenteIA {
+  id          String   @id @default(cuid())
+  tenantId    String
+  agente      String
+  intencao    String
+  descricao   String
+  payloadJson String   
+  status      String   @default("pendente") 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+}
