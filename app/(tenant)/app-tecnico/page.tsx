@@ -1,15 +1,16 @@
-import { buscarOS } from "@/app/actions/os"
+import { buscarOSCompleto } from "@/app/actions/os"
 import Link from "next/link"
 import { MapPin, Clock, Calendar, CheckCircle, ChevronRight } from "lucide-react"
 
 export default async function AppTecnicoHome() {
   // Mocking the logged-in technician
   const tecnicoId = "tec_123"
-  const ordens = await buscarOS({ tecnicoId })
+  const result = await buscarOSCompleto({ tecnicoId })
+  const ordens = result?.itens || []
 
   // Sort: agendada -> em_andamento -> concluida
   const orderMap: any = { "agendada": 1, "em_andamento": 2, "concluida": 3 }
-  ordens.sort((a, b) => (orderMap[a.status] || 99) - (orderMap[b.status] || 99))
+  ordens.sort((a: any, b: any) => (orderMap[a.status] || 99) - (orderMap[b.status] || 99))
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 md:bg-slate-200">
@@ -51,17 +52,17 @@ export default async function AppTecnicoHome() {
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-slate-800 line-clamp-1">{os.cliente?.razaoSocial || os.cliente?.nome || "Cliente Desconhecido"}</h3>
+                  <h3 className="font-semibold text-slate-800 line-clamp-1">{os.cliente?.nome || "Cliente não informado"}</h3>
                   <p className="text-sm text-slate-500 line-clamp-1 mt-0.5">{os.titulo}</p>
 
                   <div className="flex flex-col gap-2 mt-4">
                     <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(os.dataAgendada).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                      {os.dataAgendada ? new Date(os.dataAgendada).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : "Sem data agendada"}
                     </div>
                     <div className="flex items-start gap-2 text-xs font-medium text-slate-500">
                       <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <span className="line-clamp-2">{os.endereco?.logradouro}, {os.endereco?.numero} - {os.endereco?.bairro}, {os.endereco?.cidade}</span>
+                      <span className="line-clamp-2">{os.endereco ? `${os.endereco.bairro}, ${os.endereco.cidade} - ${os.endereco.uf}` : "Endereço não informado"}</span>
                     </div>
                   </div>
 

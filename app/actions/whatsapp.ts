@@ -32,10 +32,12 @@ export async function getMensagens(conversaId: string) {
 }
 
 export async function enviarMensagem(conversaId: string, conteudo: string) {
+  const tenantId = getTenantId();
   try {
     // 1. Criar a mensagem
     const novaMensagem = await prisma.mensagemWA.create({
       data: {
+        tenantId,
         conversaId,
         tipo: "saida",
         conteudo,

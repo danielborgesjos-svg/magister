@@ -97,7 +97,7 @@ function KPICard({
       onClick={onClick}
       className={cn(
         "bg-white border rounded-2xl p-4 flex items-center gap-4 text-left w-full transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.99] group",
-        alerta && valor > 0 ? "border-red-200 shadow-[0_0_0_1px_rgba(239,68,68,0.1)]" : "border-slate-200"
+        alerta && Number(valor) > 0 ? "border-red-200 shadow-[0_0_0_1px_rgba(239,68,68,0.1)]" : "border-slate-200 hover:border-slate-300 shadow-sm"
       )}
     >
       <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110" style={{ backgroundColor: `${cor}15` }}>
@@ -241,7 +241,7 @@ function AbaVisaoGeral({ onFiltrarTab }: { onFiltrarTab: (tab: TabId, filtro?: s
             <p className="text-[13px] font-bold text-slate-600 flex-1">
               {kpis.aguardandoAgendamento} OS aguardando alocação de técnico
             </p>
-            <button onClick={() => onFiltrarTab("despacho")} className="text-[11.5px] font-black text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5 shrink-0">
+            <button onClick={() => onFiltrarTab("rotas")} className="text-[11.5px] font-black text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5 shrink-0">
               Central de Despacho <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>

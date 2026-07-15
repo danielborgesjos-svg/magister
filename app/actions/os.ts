@@ -156,7 +156,7 @@ export async function buscarOSDetalhe(osId: string) {
 // ─── Criar OS ─────────────────────────────────────────────────────────────────
 export async function criarOS(data: {
   clienteId: string
-  unidadeId: string
+  unidadeId?: string
   enderecoId: string
   tecnicoId: string
   veiculoId?: string
@@ -188,7 +188,7 @@ export async function criarOS(data: {
         tenantId,
         numeroOS,
         clienteId: data.clienteId,
-        unidadeId: data.unidadeId,
+        unidadeId: data.unidadeId || "",
         enderecoId: data.enderecoId,
         tecnicoId: data.tecnicoId,
         veiculoId: data.veiculoId,
@@ -573,9 +573,9 @@ export async function atualizarStatusOS(id: string, status: string) {
       data: {
         ordemServicoId: id,
         tenantId,
-        statusAntigo: "N/A", // Poderíamos ler o antigo antes do update
-        statusNovo: status,
-        observacao: "Movido pelo Kanban"
+        statusDe: "N/A", // Poderíamos ler o antigo antes do update
+        statusPara: status,
+        motivo: "Movido pelo Kanban"
       }
     })
 
@@ -626,14 +626,14 @@ export async function iniciarAtendimento(osId: string) {
   }
 }
 
-export async function finalizarAtendimento(osId: string, observacoes?: string) {
+export async function finalizarAtendimento(osId: string, payload?: any) {
   try {
     const tenantId = getTenantId()
     const os = await prisma.ordemServico.update({
       where: { id: osId, tenantId },
       data: {
         status: "aguardando_aprovacao",
-        ...(observacoes ? { observacoesInternas: observacoes } : {}),
+        ...(payload ? { observacoesInternas: typeof payload === "string" ? payload : JSON.stringify(payload) } : {}),
         updatedAt: new Date()
       }
     })

@@ -47,7 +47,7 @@ export function ContextSelector({ activeContext, activeTenantId, allowedContexts
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button variant="outline" className="w-[260px] justify-between">
           <div className="flex items-center">
             {activeCtxInfo ? getContextIcon(activeCtxInfo.type) : <Building2 className="mr-2 h-4 w-4" />}

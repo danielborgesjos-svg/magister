@@ -38,17 +38,17 @@ export function getTenantPrisma(tenantId: string) {
 
           // Injeta tenantId no data para criações
           if (operation === 'create') {
-            args.data = { ...args.data, tenantId };
+            (args as any).data = { ...(args as any).data, tenantId };
           } else if (operation === 'createMany') {
-            if (Array.isArray(args.data)) {
-              args.data = args.data.map((d: any) => ({ ...d, tenantId }));
+            if (Array.isArray((args as any).data)) {
+              (args as any).data = (args as any).data.map((d: any) => ({ ...d, tenantId }));
             } else {
-              args.data = { ...args.data, tenantId };
+              (args as any).data = { ...(args as any).data, tenantId };
             }
           } 
           // Injeta tenantId no where para buscas e atualizações em massa
           else if (['findFirst', 'findMany', 'count', 'updateMany', 'deleteMany', 'aggregate', 'groupBy'].includes(operation)) {
-            args.where = { ...args.where, tenantId };
+            (args as any).where = { ...(args as any).where, tenantId };
           }
           // Para findUnique, update e delete (operações singulares com ID)
           // O Prisma exige a chave única exata, então fazemos a query e bloqueamos o vazamento pós-query.

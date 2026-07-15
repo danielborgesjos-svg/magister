@@ -129,6 +129,7 @@ export const initWhatsApp = async (forceStart = false) => {
         // Salva a mensagem
         await prisma.mensagemWA.create({
           data: {
+            tenantId: conversa.tenantId || "tenant_default_001",
             conversaId: conversa.id,
             tipo: isFromMe ? "saida" : "entrada",
             conteudo: texto,

@@ -44,6 +44,7 @@ export async function criarCliente(data: {
         unidades: unidades ? { 
           create: unidades.map((u: any) => ({
             nome: u.nome,
+            tenantId,
             enderecos: u.enderecos ? {
               create: u.enderecos.map((e: any) => ({
                 tipo: e.tipo, logradouro: e.logradouro, numero: e.numero,

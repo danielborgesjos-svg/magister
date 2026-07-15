@@ -51,7 +51,7 @@ export default function ConfiguracoesPage() {
       if (data.tenant) {
         setEmpresaNome(data.tenant.nome || "")
         setEmpresaCNPJ(data.tenant.documento || "")
-        setEmpresaSegmento(data.tenant.plano === "mvp" ? "Tecnologia" : "")
+        setEmpresaSegmento(data.tenant.planoId === "mvp" ? "Tecnologia" : "")
         
         // Carrega configurações em JSON
         if (data.tenant.configJson) {

@@ -67,7 +67,7 @@ export function ComboChartCard({
               contentStyle={{ backgroundColor: "#FFFFFF", borderColor: "#F1F5F9", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.08)" }}
               itemStyle={{ fontWeight: "bold", fontSize: "13px" }}
               labelStyle={{ color: "#64748B", marginBottom: "4px", fontSize: "12px" }}
-              formatter={(value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)}
+              formatter={(value: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)}
             />
             <Legend 
               verticalAlign="top" 

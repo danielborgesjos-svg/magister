@@ -84,7 +84,7 @@ export function ExecutiveHeader() {
             </p>
 
             <button
-              onClick={openIAPanel}
+              onClick={() => openIAPanel()}
               className="w-full flex items-center justify-center gap-2 bg-card text-primary font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-card/90 transition-all shadow-sm active:scale-[0.98]"
             >
               <Sparkles className="w-4 h-4" />

@@ -14,12 +14,13 @@ export async function buildContextoOS(): Promise<string> {
   const agendadas = ordens.filter(o => o.status === "agendada")
   const emExecucao = ordens.filter(o => o.status === "em_execucao" || o.status === "em_rota")
   const finalizadas = ordens.filter(o => o.status === "finalizada")
-  const atrasadas = ordens.filter(o => ["agendada", "em_rota"].includes(o.status) && new Date(o.dataAgendada) < new Date())
+  const atrasadas = ordens.filter(o => ["agendada", "em_rota"].includes(o.status) && o.dataAgendada && new Date(o.dataAgendada) < new Date())
 
   const preventivas = ordens.filter(o => o.tipoAtendimento === "Preventiva").length
   const corretivas = ordens.filter(o => o.tipoAtendimento === "Corretiva").length
   
   const ordensHoje = ordens.filter(o => {
+    if (!o.dataAgendada) return false
     const d = new Date(o.dataAgendada)
     const hoje = new Date()
     return d.toDateString() === hoje.toDateString()
@@ -43,7 +44,7 @@ OS programadas para hoje: ${ordensHoje.length}
 ${ordensHoje.length > 0 ? ordensHoje.map(o => `- OS #${o.numeroOS}: ${o.titulo} | Cliente: ${o.cliente.nome} | Téc: ${o.tecnico.nome} | Status: ${o.status}`).join("\n") : "Sem OS para hoje."}
 
 --- ALERTA DE ATRASOS ---
-${atrasadas.length > 0 ? atrasadas.map(o => `- OS #${o.numeroOS} (${o.dataAgendada.toLocaleDateString('pt-BR')}): ${o.cliente.nome} | Téc: ${o.tecnico.nome}`).join("\n") : "Nenhuma OS em atraso crítico."}
+${atrasadas.length > 0 ? atrasadas.map(o => `- OS #${o.numeroOS} (${o.dataAgendada?.toLocaleDateString('pt-BR')}): ${o.cliente.nome} | Téc: ${o.tecnico.nome}`).join("\n") : "Nenhuma OS em atraso crítico."}
 
 --- TÉCNICOS ---
 Técnicos ativos na base: ${tecnicos.length}

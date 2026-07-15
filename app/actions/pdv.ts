@@ -30,7 +30,7 @@ export async function finalizarVenda(
           total,
           status: "fechado",
           metodoPagamento,
-          itens: { create: itens.map(item => ({ produtoId: item.id, quantidade: item.quantidade, preco: item.preco })) }
+          itens: { create: itens.map(item => ({ produtoId: item.id, quantidade: item.quantidade, preco: item.preco, tenantId })) }
         }
       })
 

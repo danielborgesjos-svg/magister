@@ -1,0 +1,44 @@
+﻿
+> jarmis-erp-ia@0.1.0 build
+> next build
+
+node.exe : ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Danie\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (⚠ Warning: Next...not be correct.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ We detected multiple lockfiles and selected the directory of C:\Users\Danie\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if 
+it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\Danie\OneDrive\Desktop\JARVIS-WORKSPACE\jarmis-erp-ia\package-lock.json
+
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.0s
+  Running TypeScript ...
+Failed to type check.
+
+./ai/context/os.ts:17:95
+Type error: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+
+  [90m15 |[0m ...= [32m"em_execucao"[0m || o.status === [32m"em_rota"[0m)
+  [90m16 |[0m ...== [32m"finalizada"[0m)
+[31m[1m>[0m [90m17 |[0m ... [32m"em_rota"[0m].includes(o.status) && [36mnew[0m [33mDate[0m(o.dataAgendada) 
+< [36mnew[0m [33mDate[0m())
+  [90m   |[0m                                               [31m[1m^[0m
+  [90m18 |[0m ...
+  [90m19 |[0m ...dimento === [32m"Preventiva"[0m).length
+  [90m20 |[0m ...imento === [32m"Corretiva"[0m).length
+Next.js build worker exited with code: 1 and signal: null
