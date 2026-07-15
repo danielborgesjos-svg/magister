@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getTenantId } from "@/lib/tenant-context";
 import { revalidatePath } from "next/cache";
+import { sendEvolutionMessage } from "@/lib/whatsapp";
 
 export async function getConversas() {
   try {
@@ -34,7 +35,19 @@ export async function getMensagens(conversaId: string) {
 export async function enviarMensagem(conversaId: string, conteudo: string) {
   const tenantId = getTenantId();
   try {
-    // 1. Criar a mensagem
+    const conversa = await prisma.conversaWA.findUnique({ where: { id: conversaId }})
+    if (!conversa) throw new Error("Conversa não encontrada")
+
+    // 1. Enviar mensagem fisicamente via Evolution API
+    try {
+        // Envia para o telefone em formato DDI DDD NUM
+        const numWA = conversa.telefone.includes('@') ? conversa.telefone : `${conversa.telefone}@s.whatsapp.net`
+        await sendEvolutionMessage("magisterERP", numWA, conteudo)
+    } catch(err) {
+        console.error("Erro Evolution API disparando msg:", err)
+    }
+
+    // 2. Criar a mensagem localmente
     const novaMensagem = await prisma.mensagemWA.create({
       data: {
         tenantId,
@@ -45,7 +58,7 @@ export async function enviarMensagem(conversaId: string, conteudo: string) {
       },
     });
 
-    // 2. Atualizar a conversa
+    // 3. Atualizar a conversa
     await prisma.conversaWA.update({
       where: { id: conversaId },
       data: {

@@ -1,146 +1,97 @@
-import { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, ConnectionState, WASocket } from '@whiskeysockets/baileys'
-import QRCode from 'qrcode'
-import pino from 'pino'
-import fs from 'fs'
-import path from 'path'
 import prisma from '@/lib/prisma'
 
-// Singleton para não criar múltiplas conexões no hot-reload do Next.js
-declare global {
-  var __whatsapp: WASocket | null
-  var __whatsappStatus: {
-    status: 'conectando' | 'conectado' | 'desconectado' | 'qr_code_pronto'
-    qrCodeBase64: string | null
-    user: any | null
+const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'http://127.0.0.1:8080'
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || 'B4B0B7A6-5B8B-48F8-953D-E4562DBF0E7C'
+const ERP_WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/evolution` : 'https://erp.magistertech.com.br/api/webhooks/evolution'
+
+export async function evolutionFetch(endpoint: string, options: RequestInit = {}) {
+  const url = `${EVOLUTION_API_URL}${endpoint}`
+  const headers = {
+    'apikey': EVOLUTION_API_KEY,
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  }
+
+  const response = await fetch(url, { ...options, headers })
+  if (!response.ok) {
+    let err = 'Erro na API Evolution'
+    try {
+      const errorData = await response.json()
+      err = errorData.message || err
+    } catch (e) {}
+    throw new Error(err)
+  }
+  
+  // Some endpoints return 204 or empty string
+  const text = await response.text()
+  return text ? JSON.parse(text) : {}
+}
+
+export async function createEvolutionInstance(instanceName: string) {
+  try {
+    const data = await evolutionFetch('/instance/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        instanceName,
+        qrcode: true,
+        integration: 'WHATSAPP-BAILEYS',
+        webhook_wa_events: [
+          "MESSAGES_UPSERT",
+          "CONNECTION_UPDATE"
+        ],
+        webhook: ERP_WEBHOOK_URL
+      })
+    })
+    return data
+  } catch (error) {
+    console.error("Erro ao criar instancia:", error)
+    throw error
   }
 }
 
-if (!global.__whatsappStatus) {
-  global.__whatsappStatus = {
-    status: 'desconectado',
-    qrCodeBase64: null,
-    user: null
+export async function getEvolutionInstanceStatus(instanceName: string) {
+  try {
+    return await evolutionFetch(`/instance/connectionState/${instanceName}`)
+  } catch (error) {
+    // If instance doesn't exist, it might throw 404
+    return null
   }
 }
 
-export const getWhatsAppStatus = () => global.__whatsappStatus
-
-export const initWhatsApp = async (forceStart = false) => {
-  if (global.__whatsapp && !forceStart) {
-    return global.__whatsapp
+export async function connectEvolutionInstance(instanceName: string) {
+  try {
+    return await evolutionFetch(`/instance/connect/${instanceName}`)
+  } catch (error) {
+    console.error("Erro ao conectar instancia:", error)
+    throw error
   }
-
-  const authFolder = path.join(process.cwd(), 'whatsapp-auth')
-  if (!fs.existsSync(authFolder)) {
-    fs.mkdirSync(authFolder, { recursive: true })
-  }
-
-  const { state, saveCreds } = await useMultiFileAuthState(authFolder)
-
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: false,
-    logger: pino({ level: 'silent' }) as any,
-    browser: Browsers.macOS('Desktop'),
-    syncFullHistory: false
-  })
-
-  global.__whatsapp = sock
-  global.__whatsappStatus.status = 'conectando'
-
-  sock.ev.on('creds.update', saveCreds)
-
-  sock.ev.on('connection.update', async (update: Partial<ConnectionState>) => {
-    const { connection, lastDisconnect, qr } = update
-
-    if (qr) {
-      // Gera QR Code em Base64
-      try {
-        const qrBase64 = await QRCode.toDataURL(qr)
-        global.__whatsappStatus.qrCodeBase64 = qrBase64
-        global.__whatsappStatus.status = 'qr_code_pronto'
-      } catch (err) {
-        console.error("Erro gerando QR Code:", err)
-      }
-    }
-
-    if (connection === 'close') {
-      global.__whatsappStatus.status = 'desconectado'
-      global.__whatsappStatus.qrCodeBase64 = null
-      global.__whatsappStatus.user = null
-      const shouldReconnect = (lastDisconnect?.error as any)?.output?.statusCode !== DisconnectReason.loggedOut
-      if (shouldReconnect) {
-        setTimeout(initWhatsApp, 5000)
-      } else {
-        // Usuário deslogou, limpar pasta auth
-        fs.rmSync(authFolder, { recursive: true, force: true })
-        global.__whatsapp = null
-      }
-    }
-
-    if (connection === 'open') {
-      global.__whatsappStatus.status = 'conectado'
-      global.__whatsappStatus.qrCodeBase64 = null
-      global.__whatsappStatus.user = sock.user
-      console.log('✅ WhatsApp Conectado com sucesso!', sock.user?.id)
-    }
-  })
-
-  sock.ev.on('messages.upsert', async (m) => {
-    // Processamento de novas mensagens para salvar no Prisma
-    if (m.type !== 'notify') return
-    for (const msg of m.messages) {
-      if (!msg.message) continue
-      
-      const remoteJid = msg.key.remoteJid
-      if (!remoteJid || remoteJid.includes('@g.us') || remoteJid === 'status@broadcast') continue
-
-      const telefone = remoteJid.split('@')[0]
-      const isFromMe = msg.key.fromMe
-      const texto = msg.message.conversation || msg.message.extendedTextMessage?.text || "[Mídia não suportada]"
-
-      try {
-        // Buscar ou criar conversa
-        let conversa = await prisma.conversaWA.findFirst({
-          where: { telefone }
-        })
-
-        if (!conversa) {
-          conversa = await prisma.conversaWA.create({
-            data: {
-              telefone,
-              nome: msg.pushName || telefone,
-              status: "novo",
-              tenantId: "tenant_default_001" // Using default tenant for webhook since it doesn't have request context yet
-            }
-          })
-        } else {
-          // Atualiza ultima mensagem
-          await prisma.conversaWA.update({
-            where: { id: conversa.id },
-            data: { 
-              ultimaMensagem: texto, 
-              unreadCount: isFromMe ? 0 : conversa.unreadCount + 1,
-              status: isFromMe ? conversa.status : "em_atendimento" 
-            }
-          })
-        }
-
-        // Salva a mensagem
-        await prisma.mensagemWA.create({
-          data: {
-            tenantId: conversa.tenantId || "tenant_default_001",
-            conversaId: conversa.id,
-            tipo: isFromMe ? "saida" : "entrada",
-            conteudo: texto,
-            statusEnvio: isFromMe ? "enviado" : "recebido"
-          }
-        })
-      } catch (err) {
-        console.error("Erro salvando mensagem do WA:", err)
-      }
-    }
-  })
-
-  return sock
 }
+
+export async function logoutEvolutionInstance(instanceName: string) {
+  try {
+    return await evolutionFetch(`/instance/logout/${instanceName}`, {
+      method: 'DELETE'
+    })
+  } catch (error) {
+    console.error("Erro ao deslogar instancia:", error)
+    throw error
+  }
+}
+
+export async function sendEvolutionMessage(instanceName: string, number: string, text: string) {
+  try {
+    const data = await evolutionFetch(`/message/sendText/${instanceName}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        number,
+        text,
+        delay: 1200
+      })
+    })
+    return data
+  } catch (error) {
+    console.error("Erro ao enviar mensagem via Evolution:", error)
+    throw error
+  }
+}
+
