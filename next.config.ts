@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: '/magisterIA',
   serverExternalPackages: ['@whiskeysockets/baileys', 'jimp', 'sharp', 'qrcode', 'pino']
 };
 
