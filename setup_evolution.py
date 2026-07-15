@@ -20,9 +20,9 @@ services:
       - CORS_CREDENTIALS=true
       - LOG_LEVEL=ERROR
       - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://postgres:magisterWA25@@evolution-db:5432/evolution?schema=public
+      - DATABASE_CONNECTION_URI=postgresql://postgres:magisterWA25%40%40@evolution-db:5432/evolution?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution-api
-      - REDIS_URI=redis://evolution-redis:6379
+      - REDIS_URI=redis://evolution-redis:6379/1
       - REDIS_PREFIX_KEY=evolution
       - RABBITMQ_ENABLED=false
       - WEBSOCKET_ENABLED=false
@@ -31,6 +31,8 @@ services:
     depends_on:
       - evolution-db
       - evolution-redis
+    networks:
+      - evolution-net
 
   evolution-db:
     image: postgres:15
@@ -44,6 +46,8 @@ services:
       - evolution-pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - evolution-net
 
   evolution-redis:
     image: redis:7
@@ -54,10 +58,16 @@ services:
       - evolution-redisdata:/data
     ports:
       - "6379:6379"
+    networks:
+      - evolution-net
 
 volumes:
   evolution-pgdata:
   evolution-redisdata:
+
+networks:
+  evolution-net:
+    driver: bridge
 """
 
 try:

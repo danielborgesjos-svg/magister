@@ -34,14 +34,30 @@ export async function createEvolutionInstance(instanceName: string) {
       body: JSON.stringify({
         instanceName,
         qrcode: true,
-        integration: 'WHATSAPP-BAILEYS',
-        webhook_wa_events: [
-          "MESSAGES_UPSERT",
-          "CONNECTION_UPDATE"
-        ],
-        webhook: ERP_WEBHOOK_URL
+        integration: 'WHATSAPP-BAILEYS'
       })
     })
+
+    // Set Webhook
+    try {
+      await evolutionFetch(`/webhook/set/${instanceName}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          webhook: {
+            url: ERP_WEBHOOK_URL,
+            byEvents: false,
+            base64: false,
+            events: [
+              "MESSAGES_UPSERT",
+              "CONNECTION_UPDATE"
+            ]
+          }
+        })
+      })
+    } catch (e) {
+      console.error("Erro ao configurar webhook:", e)
+    }
+
     return data
   } catch (error) {
     console.error("Erro ao criar instancia:", error)
