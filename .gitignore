@@ -26,7 +26,6 @@ dev.db*
 .env.local
 .env.production
 .env.staging
-.env.*
 
 # ── Autenticação WhatsApp (sessão local) ──────────────────────────────────────
 /whatsapp-auth/

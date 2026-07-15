@@ -609,3 +609,39 @@ export async function atribuirTecnicoOS(osId: string, tecnicoId: string | null) 
     return { success: false, error: "Erro ao atribuir rota." }
   }
 }
+
+export async function iniciarAtendimento(osId: string) {
+  try {
+    const tenantId = getTenantId()
+    const os = await prisma.ordemServico.update({
+      where: { id: osId, tenantId },
+      data: { status: "em_andamento", updatedAt: new Date() }
+    })
+    revalidatePath("/os")
+    revalidatePath("/app-tecnico")
+    return { success: true, data: os }
+  } catch (error) {
+    console.error("[iniciarAtendimento]", error)
+    return { success: false, error: "Erro ao iniciar atendimento" }
+  }
+}
+
+export async function finalizarAtendimento(osId: string, observacoes?: string) {
+  try {
+    const tenantId = getTenantId()
+    const os = await prisma.ordemServico.update({
+      where: { id: osId, tenantId },
+      data: {
+        status: "aguardando_aprovacao",
+        ...(observacoes ? { observacoesInternas: observacoes } : {}),
+        updatedAt: new Date()
+      }
+    })
+    revalidatePath("/os")
+    revalidatePath("/app-tecnico")
+    return { success: true, data: os }
+  } catch (error) {
+    console.error("[finalizarAtendimento]", error)
+    return { success: false, error: "Erro ao finalizar atendimento" }
+  }
+}
