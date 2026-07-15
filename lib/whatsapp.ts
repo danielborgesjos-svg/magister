@@ -44,6 +44,7 @@ export async function createEvolutionInstance(instanceName: string) {
         method: 'POST',
         body: JSON.stringify({
           webhook: {
+            enabled: true,
             url: ERP_WEBHOOK_URL,
             byEvents: false,
             base64: false,

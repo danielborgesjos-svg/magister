@@ -1,0 +1,138 @@
+[TAILING] Tailing last 100 lines for [magister-erp] process (change the value with --lines option)
+/root/.pm2/logs/magister-erp-out-34.log last 100 lines:
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 276ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 205ms
+34|magiste | ✅ WhatsApp Conectado com sucesso! 554187452506:12@s.whatsapp.net
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 858ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 208ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 195ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 216ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 622ms
+34|magiste | ▲ Next.js 16.2.7
+34|magiste | - Local:         http://localhost:3002
+34|magiste | - Network:       http://187.127.11.172:3002
+34|magiste | ✓ Ready in 280ms
+
+/root/.pm2/logs/magister-erp-error-34.log last 100 lines:
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/create'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao conectar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/connect/magisterERP
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/connect/magisterERP'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao criar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/create
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/create'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao conectar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/connect/magisterERP
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/connect/magisterERP'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao criar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/create
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/create'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao conectar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/connect/magisterERP
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/connect/magisterERP'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao criar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/create
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/create'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao conectar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/connect/magisterERP
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/connect/magisterERP'
+34|magiste |   }
+34|magiste | }
+34|magiste | Erro ao criar instancia: TypeError: Failed to parse URL from \http://localhost:8080\/instance/create
+34|magiste |     at ignore-listed frames {
+34|magiste |   [cause]: TypeError: Invalid URL
+34|magiste |       at ignore-listed frames {
+34|magiste |     code: 'ERR_INVALID_URL',
+34|magiste |     input: '\\http://localhost:8080\\/instance/create'
+34|magiste |   }
+34|magiste | }
+34|magiste | Error [PrismaClientKnownRequestError]: 
+34|magiste | Invalid `prisma.campanha.findMany()` invocation:
+34|magiste | 
+34|magiste | 
+34|magiste | The table `main.Campanha` does not exist in the current database.
+34|magiste |     at async g (app/actions/campanhas.ts:10:12) {
+34|magiste |   code: 'P2021',
+34|magiste |   clientVersion: '5.22.0',
+34|magiste |   meta: { modelName: 'Campanha', table: 'main.Campanha' }
+34|magiste | }
+34|magiste | Erro ao buscar conversas: Error [PrismaClientKnownRequestError]: 
+34|magiste | Invalid `prisma.conversaWA.findMany()` invocation:
+34|magiste | 
+34|magiste | 
+34|magiste | The table `main.ConversaWA` does not exist in the current database.
+34|magiste |     at async k (app/actions/whatsapp.ts:10:23) {
+34|magiste |   code: 'P2021',
+34|magiste |   clientVersion: '5.22.0',
+34|magiste |   meta: { modelName: 'ConversaWA', table: 'main.ConversaWA' }
+34|magiste | }
+34|magiste | Erro ao buscar fluxos: Error [PrismaClientKnownRequestError]: 
+34|magiste | Invalid `prisma.fluxoIA.findMany()` invocation:
+34|magiste | 
+34|magiste | 
+34|magiste | The table `main.FluxoIA` does not exist in the current database.
+34|magiste |     at async q (app/actions/whatsapp.ts:125:20) {
+34|magiste |   code: 'P2021',
+34|magiste |   clientVersion: '5.22.0',
+34|magiste |   meta: { modelName: 'FluxoIA', table: 'main.FluxoIA' }
+34|magiste | }
+
