@@ -114,13 +114,24 @@ export default function WhatsAppPage() {
         const data = await res.json();
         setQrStatus(data.status);
         setQrImage(data.qrCodeBase64);
+        
+        // Auto-redirect to inbox when connected
+        if (data.status === 'conectado') {
+          setActiveTab('inbox');
+        }
       } catch (e) { }
     }, 3000);
     
     // Request imediato ao abrir a aba
     fetch('/api/whatsapp/status')
       .then(r => r.json())
-      .then(d => { setQrStatus(d.status); setQrImage(d.qrCodeBase64); })
+      .then(d => { 
+        setQrStatus(d.status); 
+        setQrImage(d.qrCodeBase64); 
+        if (d.status === 'conectado') {
+          setActiveTab('inbox');
+        }
+      })
       .catch(console.error);
 
     return () => clearInterval(interval);
