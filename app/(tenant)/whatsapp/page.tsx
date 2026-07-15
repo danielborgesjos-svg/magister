@@ -136,10 +136,34 @@ export default function WhatsAppPage() {
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  const forcarReconexao = async () => {
+  async function forcarReconexao() {
     setQrStatus('conectando');
-    await fetch('/api/whatsapp/connect', { method: 'POST', body: JSON.stringify({ forceStart: true }) });
-  };
+    try {
+      const res = await fetch('/api/whatsapp/connect', { method: 'POST' });
+      const data = await res.json();
+      if (data.status) {
+        setQrStatus(data.status);
+      }
+      if (data.qrCodeBase64) {
+        setQrImage(data.qrCodeBase64);
+      }
+    } catch (e) {
+      console.error(e);
+      setQrStatus('desconectado');
+    }
+  }
+
+  async function handleLogout() {
+    setQrStatus('conectando');
+    try {
+      await fetch('/api/whatsapp/logout', { method: 'POST' });
+      setQrStatus('desconectado');
+      setQrImage("");
+    } catch (e) {
+      console.error(e);
+      setQrStatus('desconectado');
+    }
+  }
 
   // Filtrar conversas na Inbox
   const conversasFiltradas = conversasState.filter(c => {
@@ -872,7 +896,10 @@ export default function WhatsAppPage() {
                         <CheckCircle2 className="w-10 h-10" />
                       </div>
                       <p className="text-lg font-bold text-green-500">Aparelho Conectado!</p>
-                      <p className="text-sm text-muted-foreground">O Magister agora está recebendo as mensagens do seu WhatsApp em tempo real.</p>
+                      <p className="text-sm text-muted-foreground mb-2">O Magister agora está recebendo as mensagens do seu WhatsApp em tempo real.</p>
+                      <Button onClick={handleLogout} variant="destructive" className="w-full sm:w-auto">
+                        Desconectar e Ler Novo QR Code
+                      </Button>
                     </div>
                   )}
                   {qrStatus === 'desconectado' && (
