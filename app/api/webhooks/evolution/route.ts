@@ -58,6 +58,56 @@ export async function POST(req: Request) {
             statusEnvio: isFromMe ? "enviado" : "recebido"
           }
         })
+
+        // ====== AUTOMAÇÃO DA MAGIS IA ======
+        if (conversa.status === "novo" && !isFromMe) {
+          try {
+            const { gerarRespostaIA } = await import('@/lib/ai');
+            const { sendEvolutionMessage } = await import('@/lib/whatsapp');
+
+            // Buscar últimas 10 mensagens da conversa para dar contexto à IA
+            const ultimas = await prisma.mensagemWA.findMany({
+              where: { conversaId: conversa.id },
+              orderBy: { createdAt: 'desc' },
+              take: 10
+            });
+
+            // O Prisma retorna decrescente, então precisamos reverter para a ordem cronológica
+            const mensagensFormatadas = ultimas.reverse().map(m => ({
+              role: m.tipo === 'saida' ? 'assistant' : 'user',
+              content: m.conteudo
+            }));
+
+            // Gerar resposta
+            const respostaIA = await gerarRespostaIA(mensagensFormatadas as any);
+
+            if (respostaIA) {
+              // Enviar para o cliente via Evolution API
+              await sendEvolutionMessage('magisterERP', remoteJid, respostaIA);
+
+              // Salvar no ERP a resposta do Bot
+              await prisma.mensagemWA.create({
+                data: {
+                  tenantId: conversa.tenantId || "tenant_default_001",
+                  conversaId: conversa.id,
+                  tipo: "saida",
+                  conteudo: respostaIA,
+                  statusEnvio: "enviado"
+                }
+              });
+
+              // Atualizar a última mensagem no chat
+              await prisma.conversaWA.update({
+                where: { id: conversa.id },
+                data: { ultimaMensagem: respostaIA }
+              });
+            }
+          } catch (iaErr) {
+            console.error("Erro no processamento da Magis IA:", iaErr);
+          }
+        }
+        // ===================================
+
       } catch (dbErr) {
         console.error("Erro salvando mensagem webhook:", dbErr)
       }
