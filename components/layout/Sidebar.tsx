@@ -7,7 +7,7 @@ import {
   Factory, ShoppingBag, Boxes, Truck, Shield,
   DollarSign, Receipt, Calculator, PiggyBank,
   UserSquare, FileText, Target, LayoutDashboard, TrendingUp, BrainCircuit,
-  ChevronRight, X, Settings, Bell
+  ChevronRight, X, Settings, Bell, Building2, ClipboardList
 } from "lucide-react";
 
 import { cn, isColorDark } from "@/lib/utils";
@@ -15,53 +15,57 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLayout } from "./LayoutProvider";
 
-const navGroups = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: any;
+  badge?: string;
+}
+
+interface NavGroupType {
+  title: string;
+  items: NavItem[];
+}
+
+const rabiscoNavGroups: NavGroupType[] = [
   {
-    title: "Executivo",
+    title: "Visão Geral",
     items: [
-      { href: "/visao-executiva", label: "Visão Executiva",        icon: LayoutDashboard },
-      { href: "/inteligencia",    label: "Assistente de IA",       icon: BrainCircuit, badge: "IA" },
-      { href: "/ia/preditiva",    label: "Inteligência Preditiva", icon: TrendingUp, badge: "IA" },
+      { href: "/rabisco", label: "Visão Geral", icon: LayoutDashboard },
     ]
   },
   {
-    title: "CRM & Comercial",
+    title: "Comercial & CRM",
     items: [
-      { href: "/clientes",                 label: "Clientes & CRM",    icon: Users },
-      { href: "/vendas",                   label: "Vendas & Pedidos",  icon: ShoppingCart },
-      { href: "/portal-b2b",               label: "Portal B2B",        icon: Globe, badge: "Novo" },
-      { href: "/portal-b2b/oportunidades", label: "Oportunidades",     icon: Star },
-      { href: "/campanhas",                label: "Marketing",         icon: Megaphone },
+      { href: "/rabisco/crm", label: "CRM & Comercial", icon: Users },
+      { href: "/rabisco/clientes", label: "Clientes", icon: UserSquare },
     ]
   },
   {
-    title: "Operações",
+    title: "Projetos & Obras",
     items: [
-      { href: "/producao",      label: "Produção",             icon: Factory },
-      { href: "/compras",       label: "Compras",              icon: ShoppingBag },
-      { href: "/estoque",       label: "Estoque & Armazéns",   icon: Boxes },
-      { href: "/logistica",     label: "Logística",            icon: Truck },
-      { href: "/qualidade",     label: "Qualidade",            icon: Shield },
+      { href: "/rabisco/projetos", label: "Projetos de Arq.", icon: ClipboardList },
+      { href: "/rabisco/obras", label: "Obras & Cronograma", icon: Building2 },
+      { href: "/rabisco/kanban", label: "Kanban & Tarefas", icon: Target },
     ]
   },
   {
-    title: "Financeiro",
+    title: "Atendimento & IA",
     items: [
-      { href: "/financeiro",    label: "Financeiro",     icon: DollarSign },
-      { href: "/fiscal",        label: "Fiscal & NF-e",  icon: Receipt },
-      { href: "/contabilidade", label: "Contabilidade",  icon: Calculator },
-      { href: "/custos",        label: "Custos",         icon: PiggyBank },
+      { href: "/whatsapp", label: "WhatsApp & IA", icon: BrainCircuit, badge: "IA" },
     ]
   },
   {
-    title: "RH",
+    title: "Gestão & Financeiro",
     items: [
-      { href: "/pessoas",       label: "Pessoas (RH)",        icon: UserSquare },
+      { href: "/rabisco/financeiro", label: "Financeiro", icon: DollarSign },
+      { href: "/rabisco/compras", label: "Compras & Cotações", icon: ShoppingBag },
+      { href: "/rabisco/fornecedores", label: "Fornecedores", icon: Factory },
     ]
-  },
+  }
 ];
 
-function NavGroup({ group, pathname }: { group: typeof navGroups[number]; pathname: string }) {
+function NavGroup({ group, pathname }: { group: NavGroupType; pathname: string }) {
   const [open, setOpen] = useState(true);
   const { closeMobileMenu } = useLayout();
 
@@ -69,6 +73,7 @@ function NavGroup({ group, pathname }: { group: typeof navGroups[number]; pathna
     <div>
       <button
         onClick={() => setOpen(v => !v)}
+        aria-label={`Toggle ${group.title}`}
         className="w-full flex items-center justify-between px-3 py-1.5 mb-0.5 group"
       >
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 group-hover:text-muted-foreground transition-colors select-none">
@@ -132,6 +137,10 @@ export function Sidebar() {
   const pathname = usePathname();
   const { isMobileMenuOpen, closeMobileMenu, sidebarColor } = useLayout();
 
+  // Determine if sidebar background is dark or light to select appropriate logo
+  const isDark = sidebarColor ? isColorDark(sidebarColor) : true;
+  const logoSrc = isDark ? "/logo-rabisco-branco.png" : "/logo-rabisco-preto.png";
+
   return (
     <aside
       className={cn(
@@ -140,7 +149,7 @@ export function Sidebar() {
       )}
       style={sidebarColor ? {
         backgroundColor: sidebarColor,
-        ...(isColorDark(sidebarColor) ? {
+        ...(isDark ? {
           "--foreground": "#FFFFFF",
           "--muted-foreground": "#E4E4E7",
           "--border": "rgba(255, 255, 255, 0.15)",
@@ -159,11 +168,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="py-6 flex items-center justify-center px-5 shrink-0 relative">
         <img
-          src="/logo-disafe.png"
-          alt="Logo DISAFE"
-          className="w-[140px] h-auto object-contain transition-transform hover:scale-105 duration-300 drop-shadow-sm"
+          src={logoSrc}
+          alt="Logo Rabisco Arquitetura"
+          className="w-[150px] max-h-[55px] h-auto object-contain transition-transform hover:scale-105 duration-300 drop-shadow-sm"
         />
-        <button className="lg:hidden text-[var(--muted-foreground)] p-1 absolute right-5 top-5" onClick={closeMobileMenu}>
+        <button aria-label="Close menu" className="lg:hidden text-[var(--muted-foreground)] p-1 absolute right-5 top-5" onClick={closeMobileMenu}>
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -179,7 +188,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-3 sidebar-scroll">
-        {navGroups.map((group, i) => (
+        {rabiscoNavGroups.map((group, i) => (
           <NavGroup key={i} group={group} pathname={pathname} />
         ))}
       </nav>
@@ -189,16 +198,16 @@ export function Sidebar() {
         <div className="flex items-center gap-3 bg-[var(--muted)]/40 p-2 rounded-2xl transition-colors hover:bg-[var(--muted)]/80">
           <div className="relative">
             <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-transparent shadow-sm flex items-center justify-center overflow-hidden shrink-0">
-              <img src="https://i.pravatar.cc/150?u=rafael" alt="Rafael Oliveira" className="w-full h-full object-cover" />
+              <img src="https://i.pravatar.cc/150?u=rabisco" alt="Rabisco Arquitetura" className="w-full h-full object-cover" />
             </div>
             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" title="Online"></div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-[var(--foreground)] truncate">Rafael Oliveira</p>
-            <p className="text-[11px] font-medium text-[var(--muted-foreground)] truncate">Diretor Executivo</p>
+            <p className="text-[13px] font-bold text-[var(--foreground)] truncate">Rabisco Arquitetura</p>
+            <p className="text-[11px] font-medium text-[var(--muted-foreground)] truncate">Equipe Técnica & Obras</p>
           </div>
           <div className="flex items-center gap-0.5">
-            <button className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors">
+            <button aria-label="Settings" className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors">
               <Settings className="w-4 h-4" />
             </button>
           </div>
