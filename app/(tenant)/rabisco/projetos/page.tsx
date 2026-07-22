@@ -1,32 +1,58 @@
 ﻿"use client";
 import { useState, useEffect } from "react";
-import { ClipboardList, Plus, Search, ChevronRight, Building2, CheckCircle2, Clock, AlertTriangle, ArrowUpRight } from "lucide-react";
-import { getProjetosArq } from "@/app/actions/rabisco";
+import { ClipboardList, Plus, Search, ChevronRight, Building2, CheckCircle2, Clock, AlertTriangle, ArrowUpRight, X } from "lucide-react";
+import { getProjetosArq, getClientesRabisco, criarProjetoArq } from "@/app/actions/rabisco";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  briefing:      { label: "Briefing",       color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-  layout:        { label: "Layout",         color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20" },
-  projeto3D:     { label: "Projeto 3D",     color: "text-cyan-400",   bg: "bg-cyan-500/10",   border: "border-cyan-500/20" },
-  detalhamento:  { label: "Detalhamento",   color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
-  orcamento:     { label: "Orçamento",      color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" },
-  execucao:      { label: "Em Execução",    color: "text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
-  entrega:       { label: "Entrega",        color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20" },
-  garantia:      { label: "Garantia",       color: "text-teal-400",   bg: "bg-teal-500/10",   border: "border-teal-500/20" },
+  briefing:      { label: "Briefing",       color: "text-purple-700", bg: "bg-purple-50", border: "border-purple-200" },
+  layout:        { label: "Layout",         color: "text-blue-700",   bg: "bg-blue-50",   border: "border-blue-200" },
+  projeto3D:     { label: "Projeto 3D",     color: "text-cyan-700",   bg: "bg-cyan-50",   border: "border-cyan-200" },
+  detalhamento:  { label: "Detalhamento",   color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" },
+  orcamento:     { label: "Orçamento",      color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200" },
+  execucao:      { label: "Em Execução",    color: "text-emerald-700",bg: "bg-emerald-50",border: "border-emerald-200" },
+  entrega:       { label: "Entrega",        color: "text-green-700",  bg: "bg-green-50",  border: "border-green-200" },
+  garantia:      { label: "Garantia",       color: "text-teal-700",   bg: "bg-teal-50",   border: "border-teal-200" },
 };
 
 const ETAPAS_FUNIL = ["briefing","layout","projeto3D","detalhamento","orcamento","execucao","entrega","garantia"];
 
 export default function ProjetosPage() {
   const [projetos, setProjetos] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    getProjetosArq().then(r => { if (r.success && r.data) setProjetos(r.data); setLoading(false); });
-  }, []);
+  const [novoProj, setNovoProj] = useState({ clienteId: "", nome: "", tipo: "residencial", orcamentoPrevisto: 0, metragem: 0 });
+
+  function carregar() {
+    setLoading(true);
+    Promise.all([getProjetosArq(), getClientesRabisco()]).then(([rProj, rCli]) => {
+      if (rProj.success && rProj.data) setProjetos(rProj.data);
+      if (rCli.success && rCli.data) setClientes(rCli.data);
+      setLoading(false);
+    });
+  }
+
+  useEffect(() => { carregar(); }, []);
+
+  async function handleSalvarProjeto(e: React.FormEvent) {
+    e.preventDefault();
+    if (!novoProj.clienteId || !novoProj.nome) return;
+    const res = await criarProjetoArq({
+      ...novoProj,
+      orcamentoPrevisto: Number(novoProj.orcamentoPrevisto),
+      metragem: Number(novoProj.metragem),
+    });
+    if (res.success) {
+      setModalOpen(false);
+      setNovoProj({ clienteId: "", nome: "", tipo: "residencial", orcamentoPrevisto: 0, metragem: 0 });
+      carregar();
+    }
+  }
 
   const filtered = projetos.filter(p => {
     const matchBusca = p.nome.toLowerCase().includes(busca.toLowerCase());
@@ -35,33 +61,33 @@ export default function ProjetosPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0C0D10] text-white p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 font-sans">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-            <Link href="/rabisco" className="hover:text-white transition-colors">Rabisco</Link>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+            <Link href="/rabisco" className="hover:text-slate-900 transition-colors">Rabisco</Link>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-white">Projetos</span>
+            <span className="text-slate-900">Projetos</span>
           </div>
-          <h1 className="text-2xl font-black">Projetos de Arquitetura</h1>
-          <p className="text-zinc-400 text-sm mt-1">{projetos.length} projetos cadastrados</p>
+          <h1 className="text-2xl font-black text-slate-900">Projetos de Arquitetura</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{projetos.length} projetos de arquitetura ativos</p>
         </div>
-        <Link href="/rabisco/projetos/novo" className="px-4 py-2.5 bg-[#D4A853] hover:bg-[#D4A853]/90 text-black text-sm font-bold rounded-xl transition-colors flex items-center gap-2">
+        <button onClick={() => setModalOpen(true)} className="px-4 py-2.5 bg-[#D4A853] hover:bg-[#c29845] text-slate-950 text-sm font-black rounded-xl shadow-md transition-all flex items-center gap-2">
           <Plus className="w-4 h-4" /> Novo Projeto
-        </Link>
+        </button>
       </div>
 
       {/* Pipeline visual */}
-      <div className="grid grid-cols-8 gap-2 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 mb-8">
         {ETAPAS_FUNIL.map(s => {
           const cfg = STATUS_CONFIG[s];
           const count = projetos.filter(p => p.status === s).length;
           return (
             <button key={s} onClick={() => setFiltroStatus(s === filtroStatus ? "todos" : s)}
-              className={cn("p-3 rounded-xl border text-center transition-all", filtroStatus === s ? cn(cfg.bg, cfg.border) : "bg-white/[0.02] border-white/10 hover:bg-white/5")}>
-              <p className={cn("text-xl font-black", filtroStatus === s ? cfg.color : "text-white")}>{count}</p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">{cfg.label}</p>
+              className={cn("p-3 rounded-xl border text-center transition-all shadow-sm",
+                filtroStatus === s ? cn(cfg.bg, cfg.border, "ring-2 ring-slate-400/20") : "bg-white border-slate-200 hover:bg-slate-100")}>
+              <p className={cn("text-xl font-black", filtroStatus === s ? cfg.color : "text-slate-900")}>{count}</p>
+              <p className="text-[10px] font-bold text-slate-500 mt-0.5">{cfg.label}</p>
             </button>
           );
         })}
@@ -69,23 +95,22 @@ export default function ProjetosPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input value={busca} onChange={e => setBusca(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4A853]/50"
-          placeholder="Buscar projeto..." />
+          className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm focus:outline-none focus:border-[#D4A853]"
+          placeholder="Buscar projeto por nome..." />
       </div>
 
-      {/* Projetos Grid */}
+      {/* Grid */}
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-[#D4A853] border-t-transparent rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <ClipboardList className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">Nenhum projeto encontrado</p>
-          <p className="text-zinc-600 text-sm mt-1">Crie seu primeiro projeto de arquitetura</p>
+        <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl">
+          <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-600 font-bold">Nenhum projeto encontrado</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(p => {
             const cfg = STATUS_CONFIG[p.status] || STATUS_CONFIG.briefing;
             const etapasTotal = p.etapas?.length || 0;
@@ -94,52 +119,89 @@ export default function ProjetosPage() {
             const obraAtrasada = p.obra?.diasAtraso > 0;
             return (
               <Link key={p.id} href={`/rabisco/projetos/${p.id}`}
-                className="bg-white/[0.03] border border-white/10 hover:border-[#D4A853]/40 rounded-2xl p-5 group transition-all hover:bg-white/[0.05] flex flex-col gap-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-base leading-snug truncate">{p.nome}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5 truncate">{p.etapaAtual || "—"}</p>
-                  </div>
-                  <span className={cn("text-[10px] font-bold uppercase px-2 py-1 rounded-lg border shrink-0", cfg.bg, cfg.border, cfg.color)}>
-                    {cfg.label}
-                  </span>
-                </div>
-                
+                className="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 group">
                 <div>
-                  <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                    <span>Avanço geral</span>
-                    <span className={cn("font-bold", cfg.color)}>{p.percentualAvanco}%</span>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-extrabold text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate">{p.nome}</p>
+                      <p className="text-xs text-slate-500 font-semibold truncate">{p.etapaAtual || "—"}</p>
+                    </div>
+                    <span className={cn("text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md border shrink-0", cfg.bg, cfg.border, cfg.color)}>
+                      {cfg.label}
+                    </span>
                   </div>
-                  <div className="w-full bg-white/5 rounded-full h-1.5">
-                    <div className={cn("h-1.5 rounded-full transition-all", cfg.bg.replace("/10","/60"))} style={{ width: `${p.percentualAvanco}%` }} />
+
+                  <div className="mt-3">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                      <span>Avanço geral</span>
+                      <span className={cn("font-black", cfg.color)}>{p.percentualAvanco}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="bg-[#D4A853] h-2 rounded-full transition-all" style={{ width: `${p.percentualAvanco}%` }} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white/5 rounded-lg py-2">
-                    <p className="text-sm font-bold">{etapasConc}/{etapasTotal}</p>
-                    <p className="text-[9px] text-zinc-500">Etapas</p>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-100 pt-3">
+                  <div className="bg-slate-50 rounded-xl p-2">
+                    <p className="font-black text-slate-900">{etapasConc}/{etapasTotal}</p>
+                    <p className="text-[9px] text-slate-500 font-bold">Etapas</p>
                   </div>
-                  <div className={cn("rounded-lg py-2", aprovPend > 0 ? "bg-amber-500/10" : "bg-white/5")}>
-                    <p className={cn("text-sm font-bold", aprovPend > 0 ? "text-amber-400" : "text-white")}>{aprovPend}</p>
-                    <p className="text-[9px] text-zinc-500">Aprovações</p>
+                  <div className={cn("rounded-xl p-2", aprovPend > 0 ? "bg-amber-50" : "bg-slate-50")}>
+                    <p className={cn("font-black", aprovPend > 0 ? "text-amber-700" : "text-slate-900")}>{aprovPend}</p>
+                    <p className="text-[9px] text-slate-500 font-bold">Aprovações</p>
                   </div>
-                  <div className={cn("rounded-lg py-2", obraAtrasada ? "bg-red-500/10" : "bg-white/5")}>
-                    <p className={cn("text-sm font-bold", obraAtrasada ? "text-red-400" : "text-white")}>{p.obra ? (obraAtrasada ? `+${p.obra.diasAtraso}d` : "Ok") : "—"}</p>
-                    <p className="text-[9px] text-zinc-500">Obra</p>
+                  <div className={cn("rounded-xl p-2", obraAtrasada ? "bg-rose-50" : "bg-slate-50")}>
+                    <p className={cn("font-black", obraAtrasada ? "text-rose-700" : "text-slate-900")}>{p.obra ? (obraAtrasada ? `+${p.obra.diasAtraso}d` : "Ok") : "—"}</p>
+                    <p className="text-[9px] text-slate-500 font-bold">Obra</p>
                   </div>
                 </div>
-
-                {p.prazoEstimado && (
-                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 border-t border-white/5 pt-3">
-                    <Clock className="w-3 h-3" />
-                    Prazo: {new Date(p.prazoEstimado).toLocaleDateString("pt-BR")}
-                    <ArrowUpRight className="w-3 h-3 ml-auto text-zinc-700 group-hover:text-[#D4A853] transition-colors" />
-                  </div>
-                )}
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal Criar Projeto */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-black text-slate-900">Novo Projeto de Arquitetura</h2>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleSalvarProjeto} className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase block mb-1">Cliente *</label>
+                <select required value={novoProj.clienteId} onChange={e => setNovoProj({...novoProj, clienteId: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900">
+                  <option value="">Selecione um cliente...</option>
+                  {clientes.map(c => <option key={c.id} value={c.id}>{c.nome} {c.empresa ? `(${c.empresa})` : ""}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase block mb-1">Nome do Projeto *</label>
+                <input required value={novoProj.nome} onChange={e => setNovoProj({...novoProj, nome: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900" placeholder="Ex: Reforma Apartamento Jardins" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 uppercase block mb-1">Metragem (m²)</label>
+                  <input type="number" value={novoProj.metragem} onChange={e => setNovoProj({...novoProj, metragem: Number(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 uppercase block mb-1">Orçamento Est. (R$)</label>
+                  <input type="number" value={novoProj.orcamentoPrevisto} onChange={e => setNovoProj({...novoProj, orcamentoPrevisto: Number(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900" />
+                </div>
+              </div>
+              <div className="pt-3 flex gap-3">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2 bg-slate-100 font-bold rounded-xl text-sm">Cancelar</button>
+                <button type="submit" className="flex-1 py-2 bg-[#D4A853] text-slate-950 font-black rounded-xl text-sm">Salvar Projeto</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
