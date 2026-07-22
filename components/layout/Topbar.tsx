@@ -7,7 +7,8 @@ import {
   Bell, Search, Settings, Building, ChevronDown, Menu,
   User, LogOut, KeyRound, HelpCircle, Moon, Sun, X,
   ClipboardList, DollarSign, Users, Zap, CheckCircle2,
-  AlertTriangle, Clock, Headphones, Monitor, LayoutGrid
+  AlertTriangle, Clock, Headphones, Monitor, LayoutGrid,
+  Calendar
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useLayout } from "./LayoutProvider"
@@ -232,39 +233,50 @@ export function Topbar() {
         </div>
 
         {/* ── Busca ── */}
-        <div className="flex-1 flex items-center max-w-[440px]">
+        <div className="flex-1 flex items-center max-w-[500px]">
           <button
             onClick={() => setBuscaOpen(true)}
-            className="relative w-full flex items-center gap-3 pl-4 pr-3 py-2 text-[13px] bg-muted/40 hover:bg-muted/70 border border-border hover:border-primary/20 rounded-xl outline-none transition-all text-muted-foreground/60 hover:text-muted-foreground cursor-text"
+            className="relative w-full flex items-center gap-3 pl-4 pr-3 py-2 text-[13px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl outline-none transition-all text-slate-400 hover:text-slate-500 cursor-text shadow-sm"
           >
-            <Search className="w-4 h-4 shrink-0" />
-            <span className="flex-1 text-left">Buscar módulos e ações...</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground/80 bg-card border border-border rounded-md">
-              ⌘K
+            <Search className="w-4 h-4 shrink-0 text-slate-400" />
+            <span className="flex-1 text-left text-slate-500 font-medium">Buscar módulos, ações ou relatórios...</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-200 rounded-md">
+              ⌘ K
             </kbd>
           </button>
         </div>
 
-        {/* ── Centro: Empresa ── */}
-        <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer mx-4">
-          <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center">
-            <Building className="w-3 h-3 text-primary" />
+        {/* ── Centro: Informações de atualização ── */}
+        <div className="hidden lg:flex items-center justify-center flex-1 mx-4">
+          <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-full">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+              <span className="text-[12px] font-semibold text-slate-600">Última atualização: há 12 segundos</span>
+            </div>
+            <div className="w-px h-3 bg-slate-300"></div>
+            <div className="flex items-center gap-1.5">
+              <Monitor className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="text-[12px] font-bold text-indigo-700">IA monitorando 18 indicadores</span>
+            </div>
           </div>
-          <span className="text-[13px] font-semibold text-foreground">Magister Tecnologia</span>
-          <ChevronDown className="w-3 h-3 text-muted-foreground" />
         </div>
 
         {/* ── Ações direita ── */}
         <div className="flex items-center gap-1 ml-auto lg:ml-0">
+          {/* Calendário */}
+          <button className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all">
+            <Calendar className="w-4.5 h-4.5" />
+          </button>
+
           {/* Notificações */}
           <div className="relative" ref={notifsRef}>
             <button
               onClick={() => { setNotifsOpen(o => !o); setProfileOpen(false) }}
-              className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+              className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
             >
               <Bell className="w-4.5 h-4.5" />
               {naoLidas > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-card" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
               )}
             </button>
             <AnimatePresence>
@@ -272,39 +284,38 @@ export function Topbar() {
             </AnimatePresence>
           </div>
 
-          {/* Configurações */}
-          <Link href="/configuracoes"
-            className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
-            title="Configurações"
-          >
-            <Settings className="w-4 h-4" />
-          </Link>
-
           {/* Ajuda */}
           <Link href="/ajuda"
-            className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+            className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
             title="Central de Ajuda"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4.5 h-4.5" />
           </Link>
 
-          <div className="hidden sm:block w-px h-5 bg-border mx-1" />
+          {/* Configurações */}
+          <Link href="/configuracoes"
+            className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
+            title="Configurações"
+          >
+            <Settings className="w-4.5 h-4.5" />
+          </Link>
 
-          {/* ── Perfil ── */}
+          <div className="hidden sm:block w-px h-6 bg-slate-200 mx-2" />
+
+          {/* ── Perfil da Empresa ── */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => { setProfileOpen(o => !o); setNotifsOpen(false) }}
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-muted/70 transition-colors outline-none"
+              className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-slate-50 transition-colors outline-none"
             >
-              <Avatar className="h-7 w-7 border border-border">
-                <AvatarImage src="https://i.pravatar.cc/150?u=rafael" alt="Rafael" />
-                <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-black">RO</AvatarFallback>
-              </Avatar>
-              <div className="hidden md:flex flex-col items-start">
-                <span className="text-[13px] font-bold text-foreground leading-none">Rafael Oliveira</span>
-                <span className="text-[10px] text-muted-foreground leading-none mt-0.5">Admin</span>
+              <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                <span className="text-red-600 font-black text-[14px]">D</span>
               </div>
-              <ChevronDown className={cn("w-3 h-3 text-muted-foreground hidden md:block transition-transform duration-200", profileOpen && "rotate-180")} />
+              <div className="hidden md:flex flex-col items-start">
+                <span className="text-[13px] font-black text-slate-900 leading-none">Disafe</span>
+                <span className="text-[11px] font-semibold text-slate-500 leading-none mt-1">Matriz - 01</span>
+              </div>
+              <ChevronDown className={cn("w-3.5 h-3.5 text-slate-400 hidden md:block transition-transform duration-200 ml-1", profileOpen && "rotate-180")} />
             </button>
 
             <AnimatePresence>

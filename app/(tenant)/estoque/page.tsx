@@ -1,383 +1,197 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Plus, AlertTriangle, TrendingDown, PackageOpen, Filter, Edit, ArrowRightLeft, Package, DollarSign, Activity, Tag, Save, X, ArrowRight } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
-import { buscarEstoque, criarProduto } from "@/app/actions/estoque"
-import { Input } from "@/components/ui/input"
+import { useState } from "react"
+import {
+  Package, LayoutDashboard, Search, Filter, AlertTriangle, 
+  ArrowUpRight, ArrowDownRight, Map, Box, History, RefreshCw,
+  Barcode, ArrowRightLeft
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type ProdutoType = {
-  id: string
-  nome: string
-  categoria: string
-  preco: number
-  custo: number
-  margem: number
-  estoqueAtual: number
-  estoqueMinimo: number
-  mediaVendaMensal: number
-  scorePotencial: number
-  risco: string
-  status: string
-  diasParado: number
+const PRODUTOS = [
+  { id: "PRD-001", nome: "Válvula Hidráulica V500", categoria: "Produto Acabado", qtd: 143, min: 50, custo: 450, local: "A-12-01", abc: "A", status: "ok" },
+  { id: "PRD-002", nome: "Aço SAE 1045", categoria: "Materia Prima", qtd: 210, min: 300, custo: 12, local: "B-05-02", abc: "A", status: "ruptura" },
+  { id: "PRD-003", nome: "O-Ring Neoprene", categoria: "Componente", qtd: 380, min: 500, custo: 0.5, local: "C-01-04", abc: "C", status: "alerta" },
+  { id: "PRD-004", nome: "Parafuso M10x30", categoria: "Insumo", qtd: 1200, min: 1000, custo: 0.1, local: "C-02-01", abc: "C", status: "ok" },
+  { id: "PRD-005", nome: "Motor Elétrico 5CV", categoria: "Componente", qtd: 12, min: 10, custo: 1200, local: "A-01-01", abc: "B", status: "alerta" },
+]
+
+const MOVIMENTACOES = [
+  { id: "MOV-105", tipo: "saida", prod: "Aço SAE 1045", qtd: 50, data: "2026-07-17 08:30", resp: "Produção (OP-0381)", user: "Carlos F." },
+  { id: "MOV-104", tipo: "entrada", prod: "Motor Elétrico 5CV", qtd: 10, data: "2026-07-16 14:20", resp: "NFe 45892", user: "Recepção" },
+  { id: "MOV-103", tipo: "saida", prod: "Válvula Hidráulica V500", qtd: 20, data: "2026-07-16 10:15", resp: "Venda (PED-992)", user: "Expedição" },
+]
+
+function DashboardTab() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card border rounded-2xl p-5">
+          <p className="text-sm font-medium text-muted-foreground mb-2">Valor em Estoque</p>
+          <p className="text-3xl font-black">R$ 2.45M</p>
+          <div className="flex items-center gap-1 text-xs text-emerald-600 mt-2 font-semibold">
+            <ArrowUpRight className="w-3 h-3" /> +2.4% no mês
+          </div>
+        </div>
+        <div className="bg-card border rounded-2xl p-5">
+          <p className="text-sm font-medium text-muted-foreground mb-2">Giro de Estoque</p>
+          <p className="text-3xl font-black text-blue-600">4.2x</p>
+          <p className="text-xs text-muted-foreground mt-2">Média saudável (Meta: 4.5x)</p>
+        </div>
+        <div className="bg-card border-red-200 bg-red-50/30 rounded-2xl p-5">
+          <p className="text-sm font-medium text-red-600 mb-2">Itens em Ruptura</p>
+          <p className="text-3xl font-black text-red-700">12</p>
+          <p className="text-xs text-red-600 mt-2 font-semibold">Urgente: Reposição Necessária</p>
+        </div>
+        <div className="bg-card border-amber-200 bg-amber-50/30 rounded-2xl p-5">
+          <p className="text-sm font-medium text-amber-700 mb-2">Abaixo do Mínimo</p>
+          <p className="text-3xl font-black text-amber-800">45</p>
+          <p className="text-xs text-amber-700 mt-2 font-semibold">Gerar ordens de compra</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-card border rounded-2xl p-5">
+          <h3 className="font-bold text-sm mb-4 flex items-center gap-2"><ArrowRightLeft className="w-4 h-4 text-primary" /> Últimas Movimentações (Kardex)</h3>
+          <div className="space-y-3">
+            {MOVIMENTACOES.map(m => (
+              <div key={m.id} className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
+                <div>
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    <span className={cn("w-2 h-2 rounded-full", m.tipo === 'entrada' ? "bg-emerald-500" : "bg-red-500")} />
+                    {m.prod}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{m.resp} · {m.user}</p>
+                </div>
+                <div className="text-right">
+                  <p className={cn("font-bold text-sm", m.tipo === 'entrada' ? "text-emerald-600" : "text-red-600")}>
+                    {m.tipo === 'entrada' ? '+' : '-'}{m.qtd}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{m.data}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-card border rounded-2xl p-5">
+          <h3 className="font-bold text-sm mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-primary" /> Curva ABC (Valores)</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1"><span className="font-bold text-primary">Curva A (80% do valor)</span><span className="font-bold">R$ 1.96M</span></div>
+              <div className="h-2 bg-muted rounded-full"><div className="h-2 bg-primary rounded-full" style={{width: '80%'}}></div></div>
+              <p className="text-[10px] text-muted-foreground mt-1">20% dos itens (142 SKUs)</p>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1"><span className="font-bold text-blue-600">Curva B (15% do valor)</span><span className="font-bold">R$ 367k</span></div>
+              <div className="h-2 bg-muted rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '15%'}}></div></div>
+              <p className="text-[10px] text-muted-foreground mt-1">30% dos itens (214 SKUs)</p>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1"><span className="font-bold text-slate-500">Curva C (5% do valor)</span><span className="font-bold">R$ 122k</span></div>
+              <div className="h-2 bg-muted rounded-full"><div className="h-2 bg-slate-400 rounded-full" style={{width: '5%'}}></div></div>
+              <p className="text-[10px] text-muted-foreground mt-1">50% dos itens (356 SKUs)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-5">
+        <p className="text-xs font-bold text-emerald-800 mb-2 flex items-center gap-1.5"><span className="text-emerald-600">✦</span> JARMIS WMS IA</p>
+        <p className="text-sm text-emerald-900 leading-relaxed">
+          Detectado aumento no giro de "Motor Elétrico 5CV". Sugiro aumentar o estoque mínimo de 10 para 15 unidades para evitar futuras rupturas, 
+          baseado no lead time de 14 dias do fornecedor atual.
+        </p>
+        <button className="mt-3 px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700">Ajustar Estoque Mínimo para 15</button>
+      </div>
+    </div>
+  )
+}
+
+function InventarioTab() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input type="text" placeholder="Buscar SKU ou Nome..." className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl text-sm" />
+        </div>
+        <div className="flex gap-2">
+          <button className="px-4 py-2 border border-border bg-background rounded-xl text-sm font-bold flex items-center gap-2"><Barcode className="w-4 h-4" /> Bipar Código</button>
+          <button className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold">Novo Item</button>
+        </div>
+      </div>
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground border-b">
+            <tr>
+              <th className="px-4 py-3">Código</th>
+              <th className="px-4 py-3">Produto</th>
+              <th className="px-4 py-3">Categoria</th>
+              <th className="px-4 py-3">Endereço (Rua-Prat-Niv)</th>
+              <th className="px-4 py-3">Curva</th>
+              <th className="px-4 py-3 text-right">Qtd Disp.</th>
+              <th className="px-4 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {PRODUTOS.map(p => (
+              <tr key={p.id} className="hover:bg-muted/30">
+                <td className="px-4 py-3 font-mono text-xs">{p.id}</td>
+                <td className="px-4 py-3 font-medium">{p.nome}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.categoria}</td>
+                <td className="px-4 py-3 font-mono text-xs">{p.local}</td>
+                <td className="px-4 py-3">
+                  <span className={cn("px-2 py-0.5 text-[10px] font-bold rounded-full", p.abc === 'A' ? "bg-primary text-white" : p.abc === 'B' ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-700")}>{p.abc}</span>
+                </td>
+                <td className="px-4 py-3 text-right font-bold">{p.qtd}</td>
+                <td className="px-4 py-3">
+                  <span className={cn("px-2 py-1 text-[10px] font-bold rounded-full uppercase", 
+                    p.status === 'ok' ? "bg-emerald-100 text-emerald-700" :
+                    p.status === 'ruptura' ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                  )}>{p.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 }
 
 export default function EstoquePage() {
-  const [busca, setBusca] = useState("")
-  const [filtroRisco, setFiltroRisco] = useState<string>("todos")
-  const [produtosDB, setProdutosDB] = useState<ProdutoType[]>([])
-  
-  // Modal State
-  const [modalNovo, setModalNovo] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [novoProduto, setNovoProduto] = useState({
-    nome: '', categoria: '', preco: 0, custo: 0, estoqueAtual: 0, estoqueMinimo: 0
-  })
-
-  useEffect(() => {
-    load()
-  }, [])
-
-  async function load() {
-    const data = await buscarEstoque()
-    setProdutosDB(data)
-  }
-
-  const produtosFiltrados = produtosDB.filter(p => {
-    const matchBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || 
-                       p.categoria.toLowerCase().includes(busca.toLowerCase())
-    const matchRisco = filtroRisco === "todos" || p.risco === filtroRisco
-    return matchBusca && matchRisco
-  })
-
-  const rupturaCount = produtosDB.filter(p => p.risco === 'ruptura').length
-  const paradosCount = produtosDB.filter(p => p.status === 'parado').length
-  const capitalParado = produtosDB.filter(p => p.status === 'parado').reduce((a, p) => a + (p.estoqueAtual * p.custo), 0)
-
-  function getRiskColor(risco: string) {
-    switch (risco) {
-      case 'ruptura': return { bg: 'bg-red-alert', border: 'border-red-alert/20', text: 'text-red-alert', soft: 'bg-red-alert/10' }
-      case 'baixo': return { bg: 'bg-orange-alert', border: 'border-orange-alert/20', text: 'text-orange-alert', soft: 'bg-orange-alert/10' }
-      case 'excesso': return { bg: 'bg-blue-500', border: 'border-blue-500/20', text: 'text-blue-500', soft: 'bg-blue-500/10' }
-      case 'ok': return { bg: 'bg-green-positive', border: 'border-green-positive/20', text: 'text-green-positive', soft: 'bg-green-positive/10' }
-      default: return { bg: 'bg-muted', border: 'border-border', text: 'text-muted-foreground', soft: 'bg-muted' }
-    }
-  }
-
-  function getStockProgressColor(atual: number, min: number) {
-    if (atual <= 0) return 'bg-red-alert'
-    const ratio = atual / min
-    if (ratio <= 1.2) return 'bg-red-alert'
-    if (ratio <= 2) return 'bg-orange-alert'
-    return 'bg-green-positive'
-  }
-
-  async function handleCriarProduto(e: React.FormEvent) {
-    e.preventDefault()
-    setIsSubmitting(true)
-    await criarProduto({
-      nome: novoProduto.nome,
-      categoria: novoProduto.categoria,
-      preco: Number(novoProduto.preco),
-      custo: Number(novoProduto.custo),
-      estoqueAtual: Number(novoProduto.estoqueAtual),
-      estoqueMinimo: Number(novoProduto.estoqueMinimo)
-    })
-    setModalNovo(false)
-    setNovoProduto({ nome: '', categoria: '', preco: 0, custo: 0, estoqueAtual: 0, estoqueMinimo: 0 })
-    setIsSubmitting(false)
-    load()
-  }
-
+  const [tab, setTab] = useState("dashboard")
   return (
-    <div className="space-y-6 flex flex-col h-full relative">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gestão de Estoque</h1>
-          <p className="text-sm text-muted-foreground">{produtosDB.length} itens cadastrados no inventário</p>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button className="flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95">
-            <AlertTriangle className="w-4 h-4 text-orange-alert" /> Alertas
-          </button>
-          <button onClick={() => setModalNovo(true)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all whitespace-nowrap">
-            <Plus className="w-4 h-4" /> Novo Produto
-          </button>
+    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-md">
+            <Package className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight">Estoque & Armazém (WMS)</h1>
+            <p className="text-sm text-muted-foreground">Inventário, Curva ABC, Kardex e Endereçamento</p>
+          </div>
         </div>
       </div>
 
-      {/* ALERT BANNERS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
-        {rupturaCount > 0 && (
-          <div className="bg-red-alert/5 border border-red-alert/20 rounded-xl p-4 flex items-start gap-4 shadow-sm relative overflow-hidden group">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-alert opacity-80" />
-            <div className="w-10 h-10 rounded-full bg-red-alert/10 text-red-alert flex items-center justify-center shrink-0">
-              <TrendingDown className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-red-alert text-sm">{rupturaCount} produtos com risco de ruptura</h3>
-              <p className="text-xs text-red-alert/80 mt-1 font-medium leading-relaxed">Estoque abaixo do mínimo. Reposição urgente recomendada para não impactar vendas.</p>
-              <button 
-                onClick={() => setFiltroRisco('ruptura')}
-                className="mt-2 text-xs font-bold text-red-alert hover:underline flex items-center gap-1.5"
-              >
-                Ver produtos <ArrowRightLeft className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        )}
-        {paradosCount > 0 && (
-          <div className="bg-orange-alert/5 border border-orange-alert/20 rounded-xl p-4 flex items-start gap-4 shadow-sm relative overflow-hidden group">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-alert opacity-80" />
-            <div className="w-10 h-10 rounded-full bg-orange-alert/10 text-orange-alert flex items-center justify-center shrink-0">
-              <PackageOpen className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-orange-alert text-sm">{paradosCount} produtos parados há &gt;90 dias</h3>
-              <p className="text-xs text-orange-alert/80 mt-1 font-medium leading-relaxed">{formatCurrency(capitalParado)} imobilizados. A Magis IA sugere campanha de liquidação.</p>
-              <button className="mt-2 text-xs font-bold text-orange-alert hover:underline flex items-center gap-1.5">
-                Gerar campanha Inteligente <ArrowRightLeft className="w-3 h-3" />
-              </button>
-            </div>
+      <div className="flex gap-1 bg-muted/50 p-1 rounded-xl w-fit">
+        <button onClick={() => setTab("dashboard")} className={cn("px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2", tab === "dashboard" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground")}><LayoutDashboard className="w-4 h-4"/> WMS Overview</button>
+        <button onClick={() => setTab("inventario")} className={cn("px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2", tab === "inventario" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground")}><Box className="w-4 h-4"/> Grade de Inventário</button>
+        <button onClick={() => setTab("mapa")} className={cn("px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2", tab === "mapa" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground")}><Map className="w-4 h-4"/> Mapa 3D do Galpão</button>
+      </div>
+
+      <div>
+        {tab === "dashboard" && <DashboardTab />}
+        {tab === "inventario" && <InventarioTab />}
+        {tab === "mapa" && (
+          <div className="bg-card border rounded-2xl p-12 text-center text-muted-foreground flex flex-col items-center">
+            <Map className="w-12 h-12 opacity-20 mb-4" />
+            <p>Visualização 3D do endereçamento em desenvolvimento.</p>
           </div>
         )}
       </div>
-
-      {/* FILTER BAR */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm shrink-0">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar por código ou nome do produto..." 
-            className="pl-9 bg-muted/50 border-transparent focus:bg-background h-10 rounded-lg"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border overflow-x-auto custom-scrollbar">
-            {["Todos", "Ruptura", "Baixo", "Ok", "Excesso"].map(r => (
-              <button
-                key={r}
-                onClick={() => setFiltroRisco(r.toLowerCase())}
-                className={cn(
-                  "px-4 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap",
-                  filtroRisco === r.toLowerCase() ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          <button className="flex items-center gap-2 px-3 py-2 border border-border bg-card hover:bg-muted rounded-xl text-sm font-bold shadow-sm transition-all text-muted-foreground">
-            <Filter className="w-4 h-4" /> Filtros
-          </button>
-        </div>
-      </div>
-
-      {/* TABLE */}
-      <div className="flex-1 bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-        <div className="overflow-x-auto flex-1 custom-scrollbar">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border sticky top-0 z-10">
-              <tr>
-                <th className="px-6 py-4 font-bold tracking-wider">Produto</th>
-                <th className="px-6 py-4 font-bold tracking-wider min-w-[200px]">Estoque Atual vs Mínimo</th>
-                <th className="px-6 py-4 font-bold tracking-wider">Giro Mensal</th>
-                <th className="px-6 py-4 font-bold tracking-wider">Situação / Risco</th>
-                <th className="px-6 py-4 font-bold tracking-wider text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {produtosFiltrados.map((p) => {
-                const riskColors = getRiskColor(p.risco)
-                const isRuptura = p.risco === 'ruptura'
-                const isParado = p.status === 'parado'
-
-                return (
-                  <tr 
-                    key={p.id} 
-                    className={cn(
-                      "hover:bg-muted/40 transition-colors group",
-                      isRuptura ? "bg-red-alert/[0.03] hover:bg-red-alert/5" : "",
-                      isParado ? "bg-orange-alert/[0.03] hover:bg-orange-alert/5" : ""
-                    )}
-                  >
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-foreground truncate max-w-[250px]" title={p.nome}>{p.nome}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground mt-1 flex items-center gap-1">
-                        <Tag className="w-3 h-3 opacity-70"/> {p.categoria}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between text-xs font-semibold">
-                          <span className={cn("text-sm", p.estoqueAtual <= p.estoqueMinimo ? "text-red-alert font-black" : "text-foreground")}>
-                            {p.estoqueAtual} <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider ml-0.5">un</span>
-                          </span>
-                          <span className="text-muted-foreground uppercase text-[10px] tracking-wider">Mínimo: {p.estoqueMinimo}</span>
-                        </div>
-                        <div className="h-2 w-full bg-muted/60 rounded-full overflow-hidden border border-border/40">
-                          <div 
-                            className={cn("h-full rounded-full transition-all duration-500", getStockProgressColor(p.estoqueAtual, p.estoqueMinimo))}
-                            style={{ width: `${Math.min(100, Math.max(2, (p.estoqueAtual / (p.estoqueMinimo * 3)) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-foreground">{p.mediaVendaMensal} <span className="text-[10px] text-muted-foreground font-semibold uppercase">un/mês</span></p>
-                      {isParado && <p className="text-[10px] text-orange-alert mt-1 font-bold uppercase tracking-wider">{p.diasParado} dias parado</p>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border tracking-wider", riskColors.soft, riskColors.text, riskColors.border)}>
-                        {p.risco}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors border border-transparent hover:border-primary/20 shadow-sm" title="Repor Estoque">
-                          <Plus className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors border border-transparent hover:border-border shadow-sm" title="Editar">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-              {produtosFiltrados.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center gap-3">
-                      <Package className="w-10 h-10 opacity-20" />
-                      <p className="font-medium">Nenhum produto encontrado com os filtros atuais.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* MODAL NOVO PRODUTO (PREMIUM) */}
-      {modalNovo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <form onSubmit={handleCriarProduto} className="bg-card w-full max-w-2xl border border-border/50 shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="px-6 py-5 border-b border-border bg-muted/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                  <Package className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold leading-tight">Novo Produto</h3>
-                  <p className="text-xs text-muted-foreground font-medium">Cadastre um item no estoque para acompanhamento</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setModalNovo(false)} className="p-2 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full transition-colors"><X className="w-5 h-5" /></button>
-            </div>
-            
-            {/* Body */}
-            <div className="p-6 space-y-6">
-              {/* Info Básica */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/50 pb-2 flex items-center gap-2"><Tag className="w-4 h-4"/> Informações Básicas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Nome do Produto *</label>
-                    <Input 
-                      required 
-                      placeholder="Ex: Tênis Esportivo Pro X"
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm"
-                      value={novoProduto.nome} 
-                      onChange={e => setNovoProduto({...novoProduto, nome: e.target.value})} 
-                    />
-                  </div>
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Categoria *</label>
-                    <Input 
-                      required
-                      placeholder="Ex: Calçados, Eletrônicos..."
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm"
-                      value={novoProduto.categoria} 
-                      onChange={e => setNovoProduto({...novoProduto, categoria: e.target.value})} 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Financeiro */}
-              <div className="space-y-4 pt-2">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/50 pb-2 flex items-center gap-2"><DollarSign className="w-4 h-4"/> Precificação</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Preço de Venda (R$) *</label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      required 
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm font-bold text-foreground"
-                      value={novoProduto.preco} 
-                      onChange={e => setNovoProduto({...novoProduto, preco: Number(e.target.value)})} 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Custo Unitário (R$) *</label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      required
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm font-medium"
-                      value={novoProduto.custo} 
-                      onChange={e => setNovoProduto({...novoProduto, custo: Number(e.target.value)})} 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Quantidades */}
-              <div className="space-y-4 pt-2">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/50 pb-2 flex items-center gap-2"><Activity className="w-4 h-4"/> Quantidades (Estoque)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Estoque Atual *</label>
-                    <Input 
-                      type="number" 
-                      required 
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm font-bold"
-                      value={novoProduto.estoqueAtual} 
-                      onChange={e => setNovoProduto({...novoProduto, estoqueAtual: Number(e.target.value)})} 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Estoque Mínimo (Alerta)</label>
-                    <Input 
-                      type="number" 
-                      className="h-11 rounded-xl bg-background border-input focus:ring-primary/20 shadow-sm font-medium text-orange-alert"
-                      value={novoProduto.estoqueMinimo} 
-                      onChange={e => setNovoProduto({...novoProduto, estoqueMinimo: Number(e.target.value)})} 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-border bg-muted/30 flex justify-end gap-3 items-center">
-              <button type="button" onClick={() => setModalNovo(false)} className="px-5 py-2.5 font-bold text-sm bg-background border border-input hover:bg-muted rounded-xl transition-all shadow-sm">Cancelar</button>
-              <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 font-bold text-sm bg-primary text-white rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
-                {isSubmitting ? <span className="animate-spin w-4 h-4 border-2 border-white/20 border-t-white rounded-full" /> : <Save className="w-4 h-4" />}
-                {isSubmitting ? "Salvando..." : "Salvar Produto"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   )
 }

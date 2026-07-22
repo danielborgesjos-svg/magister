@@ -132,6 +132,9 @@ export function MagisIAPanel() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [briefingItems, setBriefingItems] = useState(BRIEFING_POR_CONTEXTO[agentContexto] ?? BRIEFING_POR_CONTEXTO.global);
+  const [loadingBriefing, setLoadingBriefing] = useState(false);
+
   // ── Auto-switch: cada rota tem seu próprio agente ──
   useEffect(() => {
     const novoContexto = contextoParaRota(pathname);
@@ -139,9 +142,8 @@ export function MagisIAPanel() {
   }, [pathname, setAgentContexto]);
 
   const cfg: AgentConfig = AGENT_CONFIGS[agentContexto] ?? AGENT_CONFIGS.global;
-  const briefingItems = BRIEFING_POR_CONTEXTO[agentContexto] ?? BRIEFING_POR_CONTEXTO.global;
 
-  // Resetar chat e boasvindas ao trocar de agente
+  // Resetar chat e boasvindas ao trocar de agente, e buscar briefing via DeepSeek
   useEffect(() => {
     setMensagens([{
       id: "init-" + agentContexto,
@@ -150,7 +152,25 @@ export function MagisIAPanel() {
     }]);
     setInput("");
     setTab("briefing");
-  }, [agentContexto, cfg.boasVindas]);
+    
+    // Buscar Briefing Inteligente da DeepSeek se o painel estiver aberto
+    if (isIAPanelOpen) {
+      setLoadingBriefing(true);
+      import('@/app/actions/ia').then(module => {
+        module.gerarBriefingIA(agentContexto).then(res => {
+          if (res && res.length > 0) {
+            setBriefingItems(res);
+          } else {
+            setBriefingItems(BRIEFING_POR_CONTEXTO[agentContexto] ?? BRIEFING_POR_CONTEXTO.global);
+          }
+          setLoadingBriefing(false);
+        }).catch(() => {
+          setBriefingItems(BRIEFING_POR_CONTEXTO[agentContexto] ?? BRIEFING_POR_CONTEXTO.global);
+          setLoadingBriefing(false);
+        });
+      });
+    }
+  }, [agentContexto, cfg.boasVindas, isIAPanelOpen]);
 
   useEffect(() => {
     if (tab === "copiloto" && chatEndRef.current) {
@@ -267,16 +287,20 @@ export function MagisIAPanel() {
 
             {/* Alertas */}
             <div>
-              <p className="text-[10px] font-black text-[#7C8399] uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                <Clock className="w-3 h-3" /> Alertas do Dia
-              </p>
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-[10px] font-black text-[#7C8399] uppercase tracking-widest flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" /> Alertas do Dia
+                </p>
+                {loadingBriefing && <Loader2 className="w-3.5 h-3.5 text-[#3B82F6] animate-spin" />}
+              </div>
               <div className="space-y-2">
                 {briefingItems.map((item, i) => {
                   const Icon = ICON_MAP[item.icon] ?? AlertTriangle;
                   return (
                     <div key={i} className={cn(
                       "flex items-center gap-3 bg-white p-3 rounded-xl border transition-all hover:shadow-sm cursor-pointer",
-                      item.urgente ? "border-[#EF4444]/30 shadow-[0_0_0_1px_rgba(239,68,68,0.07)]" : "border-[#E9ECF3]"
+                      item.urgente ? "border-[#EF4444]/30 shadow-[0_0_0_1px_rgba(239,68,68,0.07)]" : "border-[#E9ECF3]",
+                      loadingBriefing ? "opacity-50" : ""
                     )}>
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${item.cor}15` }}>

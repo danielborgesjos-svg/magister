@@ -51,178 +51,134 @@ function detectarIntencao(mensagem: string): Intencao {
 }
 
 export async function processarMensagemIA(mensagem: string): Promise<MagisResponse> {
-  const tenantId = getTenantId()
-  const intencao = detectarIntencao(mensagem)
-  
-  try {
-    switch (intencao) {
-      case "os_resumo":
-        return await resumoOS(tenantId)
-      case "os_atrasadas":
-        return await osAtrasadas(tenantId)
-      case "financeiro_caixa":
-        return await resumoFinanceiro(tenantId)
-      case "clientes_resumo":
-        return await resumoClientes(tenantId)
-      case "desconhecido":
-      default:
-        return respostaDesconhecida()
-    }
-  } catch (error) {
-    console.error("[processarMensagemIA]", error)
-    return respostaDesconhecida()
-  }
-}
+  const apiKey = process.env.DEEPSEEK_API_KEY;
 
-// ==========================================
-// FUNÇÕES DE CADA INTENÇÃO (CONSULTANDO DB)
-// ==========================================
-
-async function resumoOS(tenantId: string): Promise<MagisResponse> {
-  const total = await prisma.ordemServico.count({ where: { tenantId } })
-  const pendentes = await prisma.ordemServico.count({ where: { tenantId, status: "aguardando_agendamento" } })
-  const agendadas = await prisma.ordemServico.count({ where: { tenantId, status: "agendada" } })
-  const concluidas = await prisma.ordemServico.count({ where: { tenantId, status: "concluida" } })
-
-  return {
-    agente: "JARMIS Field Service",
-    agenteIcon: "ClipboardList",
-    agenteColor: "#D97706",
-    diagnostico: `Existem ${total} OS no sistema. Dessas, ${pendentes} estão aguardando agendamento e ${agendadas} estão agendadas para técnicos.`,
-    motivo: "Você tem um gargalo moderado de OS pendentes sem técnico.",
-    recomendacao: "Despache as OS pendentes para a equipe de campo imediatamente.",
-    proximoPasso: "Acesse a tela de Rotas (Despacho) para alocar os técnicos.",
-    tipo: "info",
-    acoes: [
-      { label: "Ir para Despacho / Rotas", type: "link", href: "/os?tab=rotas" },
-      { label: "Ver todas as OS", type: "link", href: "/os?tab=todas" },
-    ],
-    dados: [
-      { label: "Pendentes", valor: pendentes.toString(), cor: "#EF4444" },
-      { label: "Agendadas", valor: agendadas.toString(), cor: "#F59E0B" },
-      { label: "Concluídas", valor: concluidas.toString(), cor: "#22C55E" },
-    ]
-  }
-}
-
-async function osAtrasadas(tenantId: string): Promise<MagisResponse> {
-  const agora = new Date()
-  const atrasadas = await prisma.ordemServico.findMany({
-    where: {
-      tenantId,
-      status: { notIn: ["concluida", "cancelada"] },
-      prazoSLA: { lt: agora }
-    },
-    take: 5,
-    include: { cliente: true }
-  })
-
-  if (atrasadas.length === 0) {
+  if (!apiKey || apiKey === 'sua_chave_aqui') {
     return {
-      agente: "JARMIS Field Service",
-      agenteIcon: "CheckCircle2",
-      agenteColor: "#22C55E",
-      diagnostico: "Nenhuma Ordem de Serviço com SLA vencido no momento. Sua operação está 100% no prazo.",
-      motivo: "A equipe técnica está operando dentro da margem de segurança do SLA estabelecido.",
-      recomendacao: "Mantenha o ritmo atual.",
-      proximoPasso: "Se desejar, avalie criar métricas preditivas para amanhã.",
-      tipo: "sucesso",
-      acoes: [{ label: "Ver Dashboard de Relatórios", type: "link", href: "/os?tab=relatorios" }]
+      agente: "JARMIS (Fallback)",
+      agenteIcon: "AlertTriangle",
+      agenteColor: "#EF4444",
+      diagnostico: "Não foi possível conectar ao DeepSeek.",
+      motivo: "A chave de API (DEEPSEEK_API_KEY) não está configurada corretamente no arquivo .env.local.",
+      recomendacao: "Edite o arquivo .env.local na raiz do projeto e insira sua chave válida.",
+      proximoPasso: "Configurar API Key",
+      tipo: "alerta",
+      acoes: [],
+    };
+  }
+
+  const systemPrompt = `Você é o JARMIS, um Copiloto Operacional e Analítico de ERP avançado.
+Sua saída DEVE OBRIGATORIAMENTE ser APENAS um JSON válido, seguindo estritamente esta interface:
+
+{
+  "agente": "JARMIS Especialista (Ex: JARMIS Financeiro)",
+  "agenteIcon": "Icone Lucide (Ex: DollarSign, AlertTriangle, Users, Package)",
+  "agenteColor": "Hexadecimal (Ex: #22C55E)",
+  "diagnostico": "Seu texto de resposta principal",
+  "motivo": "Motivo da análise ou contexto",
+  "recomendacao": "Sugestão estratégica",
+  "proximoPasso": "O que o usuário deve fazer a seguir",
+  "tipo": "info | alerta | sucesso | acao",
+  "acoes": [
+    { "label": "Nome do Botão", "type": "link", "href": "/algum/lugar" }
+  ],
+  "dados": [
+    { "label": "Métrica", "valor": "R$ 1.000", "cor": "#22C55E" }
+  ]
+}
+
+- Os 'dados' e 'acoes' são opcionais. Forneça dados fictícios realistas e convincentes.
+- NUNCA ENVOLVA O JSON EM BLOCOS MARKDOWN! RETORNE APENAS RAW JSON.`;
+
+  try {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: mensagem }
+        ],
+        temperature: 0.2,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`DeepSeek API Error: ${res.status}`);
     }
-  }
 
-  return {
-    agente: "JARMIS Field Service",
-    agenteIcon: "AlertTriangle",
-    agenteColor: "#EF4444",
-    diagnostico: `Alerta: Encontrei ${atrasadas.length} OS(s) com o SLA de atendimento estourado!`,
-    motivo: "Essas ordens já ultrapassaram o tempo limite de resolução acordado.",
-    recomendacao: "Priorize o envio imediato da equipe técnica para essas ordens ou renegocie o prazo com o cliente.",
-    proximoPasso: "Acesse a aba 'Todas as OS', filtre pelas críticas e aloque-as.",
-    tipo: "alerta",
-    acoes: [
-      { label: "Ver OS Críticas no Kanban", type: "link", href: "/os?tab=kanban" }
-    ],
-    dados: atrasadas.map(os => ({
-      label: `OS #${os.numeroOS}`,
-      valor: `${os.cliente.nome} (Atrasada)`,
-      cor: "#EF4444"
-    }))
-  }
-}
-
-async function resumoFinanceiro(tenantId: string): Promise<MagisResponse> {
-  const ordens = await prisma.ordemServico.findMany({
-    where: { tenantId },
-    select: { valorPrevisto: true, valorFinal: true, statusFaturamento: true }
-  })
-
-  let faturado = 0
-  let pendente = 0
-
-  ordens.forEach(o => {
-    const val = o.valorFinal || o.valorPrevisto || 0
-    if (o.statusFaturamento === "faturada" || o.statusFaturamento === "paga") {
-      faturado += val
-    } else {
-      pendente += val
+    const json = await res.json();
+    let content = json.choices[0].message.content.trim();
+    if (content.startsWith("\`\`\`json")) {
+      content = content.replace(/^\`\`\`json\n/, "").replace(/\n\`\`\`$/, "");
+    } else if (content.startsWith("\`\`\`")) {
+      content = content.replace(/^\`\`\`\n/, "").replace(/\n\`\`\`$/, "");
     }
-  })
 
-  const formataMoeda = (n: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n)
-
-  return {
-    agente: "JARMIS Financeiro",
-    agenteIcon: "DollarSign",
-    agenteColor: "#22C55E",
-    diagnostico: `Resumo do faturamento de OS: Faturado total de ${formataMoeda(faturado)} e um valor pendente (não faturado) de ${formataMoeda(pendente)}.`,
-    motivo: "Isso reflete apenas o fluxo proveniente da execução de Serviços de Campo.",
-    recomendacao: "Gere as faturas pendentes para converter o valor retido em contas a receber.",
-    proximoPasso: "Acesse o módulo de Cobranças para gerar os Boletos.",
-    tipo: "info",
-    acoes: [
-      { label: "Ir para Cobranças", type: "link", href: "/financeiro/contas" }
-    ],
-    dados: [
-      { label: "Faturado", valor: formataMoeda(faturado), cor: "#22C55E" },
-      { label: "Pendente (Risco)", valor: formataMoeda(pendente), cor: "#F59E0B" }
-    ]
+    return JSON.parse(content) as MagisResponse;
+  } catch (error) {
+    console.error("DeepSeek Error:", error);
+    return {
+      agente: "JARMIS Core",
+      agenteIcon: "Zap",
+      agenteColor: "#6D4AFF",
+      diagnostico: "Desculpe, ocorreu um erro na comunicação com a API da DeepSeek.",
+      motivo: "Erro de rede ou formato inesperado.",
+      recomendacao: "Verifique a chave de API e a conexão.",
+      proximoPasso: "Tente novamente mais tarde.",
+      tipo: "alerta",
+      acoes: []
+    };
   }
 }
 
-async function resumoClientes(tenantId: string): Promise<MagisResponse> {
-  const ativos = await prisma.cliente.count({ where: { tenantId, status: "ativo" } })
-  const inativos = await prisma.cliente.count({ where: { tenantId, status: "inativo" } })
+export async function gerarBriefingIA(contexto: string) {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey || apiKey === 'sua_chave_aqui') return [];
 
-  return {
-    agente: "JARMIS CRM",
-    agenteIcon: "Users",
-    agenteColor: "#3B82F6",
-    diagnostico: `Você possui um total de ${ativos + inativos} clientes cadastrados na base.`,
-    motivo: `${ativos} estão classificados como ativos e ${inativos} como inativos.`,
-    recomendacao: "Uma base ativa saudável gira em torno de 80%. Considere campanhas de reativação para os inativos.",
-    proximoPasso: "Use a IA Preditiva para identificar os melhores inativos para reativar.",
-    tipo: "info",
-    acoes: [
-      { label: "Ver lista de Clientes", type: "link", href: "/clientes" }
-    ],
-    dados: [
-      { label: "Ativos", valor: ativos.toString(), cor: "#3B82F6" },
-      { label: "Inativos", valor: inativos.toString(), cor: "#94A3B8" }
-    ]
-  }
-}
+  const systemPrompt = `Você é o JARMIS. Gere um briefing com 4 a 5 alertas rápidos (KPIs e avisos) para o módulo ERP atual: ${contexto}.
+Sua saída DEVE OBRIGATORIAMENTE ser APENAS um JSON válido contendo um array de objetos, assim:
 
-function respostaDesconhecida(): MagisResponse {
-  return {
-    agente: "JARMIS Core",
-    agenteIcon: "Zap",
-    agenteColor: "#6D4AFF",
-    diagnostico: "Desculpe, ainda estou mapeando e sincronizando esses dados operacionais do banco.",
-    motivo: "Minha capacidade atual de busca no banco foca em: Resumo de OS, OS Atrasadas, Financeiro, Faturamento e Clientes.",
-    recomendacao: "Tente perguntar algo como: 'Quais as OS atrasadas?' ou 'Como está o financeiro e faturamento?'.",
-    proximoPasso: "Refine a sua solicitação.",
-    tipo: "info",
-    acoes: []
+[
+  { "icon": "AlertTriangle", "cor": "#EF4444", "texto": "3 OS atrasadas — SLA em risco", "urgente": true },
+  { "icon": "DollarSign", "cor": "#F59E0B", "texto": "R$ 8.400 não faturados" }
+]
+
+- Os ícones válidos são (do Lucide): AlertTriangle, DollarSign, ClipboardList, TrendingUp, Users, CheckCircle2, CheckSquare, AlertOctagon, Calendar, Truck, Radio, Package.
+- As cores devem ser Hexadecimais válidos.
+- 'urgente' é um booleano opcional.
+- NUNCA ENVOLVA O JSON EM BLOCOS MARKDOWN! RETORNE APENAS RAW JSON.`;
+
+  try {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: "Gerar briefing" }],
+        temperature: 0.3,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!res.ok) throw new Error();
+    const json = await res.json();
+    let content = json.choices[0].message.content.trim();
+    if (content.startsWith("\`\`\`json")) content = content.replace(/^\`\`\`json\n/, "").replace(/\n\`\`\`$/, "");
+    else if (content.startsWith("\`\`\`")) content = content.replace(/^\`\`\`\n/, "").replace(/\n\`\`\`$/, "");
+    
+    // O deepseek as vezes envelopa num objeto como { "alertas": [...] } ou direto no array
+    const parsed = JSON.parse(content);
+    return Array.isArray(parsed) ? parsed : (parsed.alertas || parsed.briefing || []);
+  } catch (e) {
+    return [];
   }
 }

@@ -27,10 +27,8 @@ export function useMagis(options: UseMagisOptions = {}) {
 
   // Verifica status do engine na montagem
   useEffect(() => {
-    fetch("/magisterIA/api/magis")
-      .then(r => r.json())
-      .then(d => setEngineInfo({ online: d.ollama, model: d.model }))
-      .catch(() => setEngineInfo({ online: false, model: null }))
+    // Como estamos usando DeepSeek via cloud, definimos como online
+    setEngineInfo({ online: true, model: "DeepSeek-V3" })
   }, [])
 
   // Auto-scroll
@@ -52,7 +50,7 @@ export function useMagis(options: UseMagisOptions = {}) {
     setIsTyping(true)
 
     try {
-      const res = await fetch("/magisterIA/api/magis", {
+      const res = await fetch("/api/jarmis", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

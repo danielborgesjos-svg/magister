@@ -91,7 +91,7 @@ export default function IAPreditivaPage() {
     }
 
     try {
-      const res = await fetch("/magisterIA/api/magis", {
+      const res = await fetch("/api/jarmis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mensagem: msg, modulo: "rag" }),
@@ -99,16 +99,19 @@ export default function IAPreditivaPage() {
       const json = await res.json();
       setVectorizingPhase(null);
 
-      if (json.success) {
+      if (json.diagnostico) {
+        let text = json.diagnostico;
+        if (json.recomendacao) text += "\n\n" + json.recomendacao;
+        if (json.proximoPasso) text += "\n\n" + json.proximoPasso;
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           role: "magis",
-          text: json.data.text,
-          nodes: json.data.nodes,
-          isRAG: json.data.isRAG,
+          text: text,
+          nodes: [],
+          isRAG: true,
           timestamp: new Date(),
         }]);
-      } else throw new Error(json.error);
+      } else throw new Error(json.error || "Erro na resposta");
     } catch (err: any) {
       setVectorizingPhase(null);
       setMessages(prev => [...prev, {

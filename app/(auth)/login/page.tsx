@@ -18,7 +18,7 @@ export default function LoginPage() {
         className="hidden md:block md:w-[40%] lg:w-[48%] relative h-screen bg-slate-900 shrink-0"
       >
         <Image
-          src="https://i.imgur.com/O60Zzzk.png"
+          src="/login-bg.png"
           alt="Magister Tech & Jamper Login"
           fill
           priority

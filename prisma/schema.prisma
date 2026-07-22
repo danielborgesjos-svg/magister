@@ -10,59 +10,95 @@ datasource db {
 // ─── Multi-Tenant ─────────────────────────────────────────────────────────────
 
 model Tenant {
-  id              String   @id @default(cuid())
-  nome            String
-  documento       String?
-  planoId         String?
-  status          String   @default("ativo")
-  configJson      String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id         String   @id @default(cuid())
+  nome       String
+  documento  String?
+  planoId    String?
+  status     String   @default("ativo")
+  configJson String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  plano                 Plano? @relation(fields: [planoId], references: [id])
-  users                 User[]
-  assinaturas           AssinaturaSaaS[]
-  modulos               TenantModulo[]
-  faturas               FaturaSaaS[]
-  chamados              ChamadoSuporte[]
+  plano       Plano?           @relation(fields: [planoId], references: [id])
+  users       User[]
+  assinaturas AssinaturaSaaS[]
+  modulos     TenantModulo[]
+  faturas     FaturaSaaS[]
+  chamados    ChamadoSuporte[]
 
-  clientes              Cliente[]
-  unidades              Unidade[]
-  enderecos             Endereco[]
-  areasTecnicas         AreaTecnica[]
-  ativos                Ativo[]
-  produtos              Produto[]
-  vendas                Venda[]
-  itensVenda            ItemVenda[]
+  clientes               Cliente[]
+  unidades               Unidade[]
+  enderecos              Endereco[]
+  areasTecnicas          AreaTecnica[]
+  ativos                 Ativo[]
+  produtos               Produto[]
+  vendas                 Venda[]
+  itensVenda             ItemVenda[]
   lancamentosFinanceiros LancamentoFinanceiro[]
-  negociacoes           Negociacao[]
-  tarefas               Tarefa[]
-  agendamentos          Agendamento[]
-  integracoes           Integracao[]
-  conversasWA           ConversaWA[]
-  fluxosIA              FluxoIA[]
-  campanhas             Campanha[]
-  equipes               Equipe[]
-  tecnicos              Tecnico[]
-  veiculos              Veiculo[]
-  manutencoesVeiculo    ManutencaoVeiculo[]
-  ordensServico         OrdemServico[]
-  osExecucoes           OsExecucao[]
-  osTransicoes          OsTransicao[]
-  osNaoConformidades    OsNaoConformidade[]
-  osRetornos            OsRetorno[]
-  osModelos             OsModelo[]
-  osItensMaterial       OsItemMaterial[]
-  osFotos               OsFoto[]
-  osCobrancas           OsCobranca[]
-  recorrenciasOS        RecorrenciaOS[]
-  filtrosSalvos         FiltroSalvo[]
-  agentLogs             AgentLog[]
-  acoesPendentesIA      AcaoPendenteIA[]
-  contatos              Contato[]
-  contratos             Contrato[]
-  usuariosPortal        UsuarioPortal[]
-  mensagensWA           MensagemWA[]
+  negociacoes            Negociacao[]
+  tarefas                Tarefa[]
+  agendamentos           Agendamento[]
+  integracoes            Integracao[]
+  conversasWA            ConversaWA[]
+  fluxosIA               FluxoIA[]
+  campanhas              Campanha[]
+  equipes                Equipe[]
+  tecnicos               Tecnico[]
+  veiculos               Veiculo[]
+  manutencoesVeiculo     ManutencaoVeiculo[]
+  ordensServico          OrdemServico[]
+  osExecucoes            OsExecucao[]
+  osTransicoes           OsTransicao[]
+  osNaoConformidades     OsNaoConformidade[]
+  osRetornos             OsRetorno[]
+  osModelos              OsModelo[]
+  osItensMaterial        OsItemMaterial[]
+  osFotos                OsFoto[]
+  osCobrancas            OsCobranca[]
+  recorrenciasOS         RecorrenciaOS[]
+  filtrosSalvos          FiltroSalvo[]
+  agentLogs              AgentLog[]
+  acoesPendentesIA       AcaoPendenteIA[]
+  contatos               Contato[]
+  contratos              Contrato[]
+  usuariosPortal         UsuarioPortal[]
+  mensagensWA            MensagemWA[]
+  alertasPreditivos      AlertaPreditivo[]
+  leads                  Lead[]
+  materiasPrimas         MateriaPrima[]
+  boms                   BOM[]
+  ordensProducao         OrdemProducao[]
+  fornecedores           Fornecedor[]
+  ordensCompra           OrdemCompra[]
+  lotes                  Lote[]
+  b2bOportunidades       B2BOportunidade[]
+  b2bPropostas           B2BProposta[]
+  b2bAtividades          B2BAtividade[]
+  ImportacaoLog          ImportacaoLog[]
+  ModeloForecast         ModeloForecast[]
+  ResultadoForecast      ResultadoForecast[]
+  Acuracia               Acuracia[]
+  AlertaInteligente      AlertaInteligente[]
+  CenarioSimulado        CenarioSimulado[]
+  LogAuditoriaIA         LogAuditoriaIA[]
+
+  // Rabisco — Arquitetura e Obras
+  projetosArq            ProjetoArq[]
+  briefingsArq           BriefingArq[]
+  etapasProjetoArq       EtapaProjetoArq[]
+  versoesProjetoArq      VersaoProjeto[]
+  aprovacoesClienteArq   AprovacaoClienteArq[]
+  alteracoesProjetoArq   AlteracaoProjetoArq[]
+  documentosArq          DocumentoArq[]
+  obrasArq               ObraArq[]
+  atividadesObra         AtividadeObra[]
+  diariosObra            DiarioObra[]
+  visitasTecnicasArq     VisitaTecnicaArq[]
+  naoConformidadesArq    NaoConformidadeArq[]
+  relatoriosObra         RelatorioObra[]
+  orcamentoItensArq      OrcamentoItemArq[]
+  itensListaCompraArq    ItemListaCompraArq[]
+  cotacoesArq            CotacaoArq[]
 }
 
 model User {
@@ -75,79 +111,83 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 // ─── SaaS Control Center Models ───────────────────────────────────────────────
 
 model Plano {
-  id            String   @id @default(cuid())
-  nome          String
-  preco         Float
-  limiteUsuarios Int     @default(1)
-  limiteOS      Int      @default(50)
-  limiteIA      Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  nome           String
+  preco          Float
+  limiteUsuarios Int      @default(1)
+  limiteOS       Int      @default(50)
+  limiteIA       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  tenants       Tenant[]
-  assinaturas   AssinaturaSaaS[]
+  tenants     Tenant[]
+  assinaturas AssinaturaSaaS[]
 }
 
 model AssinaturaSaaS {
-  id            String   @id @default(cuid())
-  tenantId      String
-  planoId       String
-  status        String   @default("ativa") // ativa, cancelada, inadimplente
-  dataInicio    DateTime @default(now())
-  dataFim       DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id         String    @id @default(cuid())
+  tenantId   String
+  planoId    String
+  status     String    @default("ativa") // ativa, cancelada, inadimplente
+  dataInicio DateTime  @default(now())
+  dataFim    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plano         Plano    @relation(fields: [planoId], references: [id])
-  faturas       FaturaSaaS[]
+  tenant  Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plano   Plano        @relation(fields: [planoId], references: [id])
+  faturas FaturaSaaS[]
+
   @@index([tenantId])
 }
 
 model ModuloSaaS {
-  id            String   @id @default(cuid())
-  codigo        String   @unique // ex: whatsapp_360
-  nome          String
-  descricao     String?
-  ativo         Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  codigo    String   @unique // ex: whatsapp_360
+  nome      String
+  descricao String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  tenants       TenantModulo[]
+  tenants TenantModulo[]
 }
 
 model TenantModulo {
-  id            String   @id @default(cuid())
-  tenantId      String
-  moduloId      String
-  ativo         Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  tenantId  String
+  moduloId  String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  modulo        ModuloSaaS @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modulo ModuloSaaS @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+
   @@unique([tenantId, moduloId])
   @@index([tenantId])
 }
 
 model FaturaSaaS {
-  id            String   @id @default(cuid())
-  tenantId      String
-  assinaturaId  String
-  valor         Float
-  status        String   @default("pendente") // pendente, paga, vencida
-  vencimento    DateTime
-  pagamentoEm   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(cuid())
+  tenantId     String
+  assinaturaId String
+  valor        Float
+  status       String    @default("pendente") // pendente, paga, vencida
+  vencimento   DateTime
+  pagamentoEm  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assinatura    AssinaturaSaaS @relation(fields: [assinaturaId], references: [id], onDelete: Restrict)
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assinatura AssinaturaSaaS @relation(fields: [assinaturaId], references: [id], onDelete: Restrict)
+
   @@index([tenantId])
 }
 
@@ -162,98 +202,107 @@ model ChamadoSuporte {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 // ─── ERP Models (JAMPER) ──────────────────────────────────────────────────────
 
 model Cliente {
-  id             String    @id @default(cuid())
-  tenantId       String
-  nome           String
-  razaoSocial    String?
-  nomeFantasia   String?
-  cnpjCpf        String?
-  empresa        String?
-  segmento       String?
-  classificacao  String?
-  origem         String?
-  perfil         String?
-  categoria      String?
-  cidade         String?
-  score          Int       @default(50)
-  status         String    @default("lead")
-  totalComprado  Float     @default(0)
-  observacoes    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                   String   @id @default(cuid())
+  tenantId             String
+  nome                 String
+  razaoSocial          String?
+  nomeFantasia         String?
+  cnpjCpf              String?
+  empresa              String?
+  segmento             String?
+  classificacao        String?
+  origem               String?
+  perfil               String?
+  categoria            String?
+  cidade               String?
+  score                Int      @default(50)
+  status               String   @default("lead")
+  totalComprado        Float    @default(0)
+  observacoes          String?
+  probabilidadeChurn   Int      @default(0)
+  perfilComportamental String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  unidades       Unidade[]
-  contatos       Contato[]
-  contratos      Contrato[]
-  vendas         Venda[]
-  negociacoes    Negociacao[]
-  tarefas        Tarefa[]
-  ordensServico  OrdemServico[]
-  usuariosPortal UsuarioPortal[]
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unidades          Unidade[]
+  contatos          Contato[]
+  contratos         Contrato[]
+  vendas            Venda[]
+  negociacoes       Negociacao[]
+  tarefas           Tarefa[]
+  ordensServico     OrdemServico[]
+  usuariosPortal    UsuarioPortal[]
+  b2bOportunidades  B2BOportunidade[]
+  AlertaInteligente AlertaInteligente[]
+
   @@index([tenantId])
 }
 
 model Unidade {
-  id            String    @id @default(cuid())
-  tenantId      String
-  clienteId     String
-  nome          String    // Matriz, Filial 1, etc
-  cnpj          String?
-  observacoes   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  tenantId    String
+  clienteId   String
+  nome        String // Matriz, Filial 1, etc
+  cnpj        String?
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   enderecos     Endereco[]
   ordensServico OrdemServico[]
+
   @@index([tenantId])
 }
 
 model Endereco {
-  id            String    @id @default(cuid())
-  tenantId      String
-  unidadeId     String
-  tipo          String
-  cep           String?
-  logradouro    String
-  numero        String
-  complemento   String?
-  bairro        String
-  cidade        String
-  uf            String
-  referencia    String?
-  observacoes   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  tenantId    String
+  unidadeId   String
+  tipo        String
+  cep         String?
+  logradouro  String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  uf          String
+  referencia  String?
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  unidade       Unidade      @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unidade       Unidade        @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
   areasTecnicas AreaTecnica[]
   ordensServico OrdemServico[]
+
   @@index([tenantId])
 }
 
 model AreaTecnica {
-  id            String    @id @default(cuid())
-  tenantId      String
-  enderecoId    String
-  nome          String    // Casa de Máquinas, Telhado, etc
-  observacoes   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  tenantId    String
+  enderecoId  String
+  nome        String // Casa de Máquinas, Telhado, etc
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  endereco      Endereco  @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
-  ativos        Ativo[]
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  endereco Endereco @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
+  ativos   Ativo[]
+
   @@index([tenantId])
 }
 
@@ -270,14 +319,15 @@ model Ativo {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  areaTecnica    AreaTecnica  @relation(fields: [areaTecnicaId], references: [id], onDelete: Cascade)
-  ordensServico  OrdemServico[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  areaTecnica   AreaTecnica    @relation(fields: [areaTecnicaId], references: [id], onDelete: Cascade)
+  ordensServico OrdemServico[]
+
   @@index([tenantId])
 }
 
 model Contato {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
   clienteId   String
   nome        String
@@ -286,11 +336,12 @@ model Contato {
   whatsapp    String?
   email       String?
   observacoes String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -300,118 +351,133 @@ model Contrato {
   clienteId       String?
   numero          String?
   titulo          String
-  tipo            String    @default("cliente")  // cliente, fornecedor, servico, parceria, outro
-  categoria       String?   // Ex: Manutenção, Limpeza, TI, Aluguel
-  parteNome       String?   // Nome do fornecedor/parceiro quando não é cliente
-  parteDoc        String?   // CNPJ/CPF da parte
+  tipo            String    @default("cliente") // cliente, fornecedor, servico, parceria, outro
+  categoria       String? // Ex: Manutenção, Limpeza, TI, Aluguel
+  parteNome       String? // Nome do fornecedor/parceiro quando não é cliente
+  parteDoc        String? // CNPJ/CPF da parte
   valor           Float     @default(0)
-  periodicidade   String    @default("mensal")   // mensal, trimestral, semestral, anual, unico
-  status          String    @default("ativo")    // ativo, encerrado, suspenso, em_renovacao, rascunho
+  periodicidade   String    @default("mensal") // mensal, trimestral, semestral, anual, unico
+  status          String    @default("ativo") // ativo, encerrado, suspenso, em_renovacao, rascunho
   dataInicio      DateTime
   dataFim         DateTime?
-  alertaRenovacao Int?      // dias antes do vencimento para alertar
-  arquivoPath     String?   // caminho do PDF armazenado
-  arquivoNome     String?   // nome original do arquivo
-  arquivoSize     Int?      // tamanho em bytes
+  alertaRenovacao Int? // dias antes do vencimento para alertar
+  arquivoPath     String? // caminho do PDF armazenado
+  arquivoNome     String? // nome original do arquivo
+  arquivoSize     Int? // tamanho em bytes
   observacoes     String?
   responsavel     String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente         Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
-  ordensServico   OrdemServico[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       Cliente?       @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  ordensServico OrdemServico[]
+
   @@index([tenantId])
   @@index([tenantId, status])
 }
 
-
 model UsuarioPortal {
-  id            String    @id @default(cuid())
-  tenantId      String
-  clienteId     String
-  nome          String
-  email         String    @unique
-  senha         String?
-  role          String    @default("admin") // admin (toda a empresa) ou viewer (unidade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  clienteId String
+  nome      String
+  email     String   @unique
+  senha     String?
+  role      String   @default("admin") // admin (toda a empresa) ou viewer (unidade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 // ─── Comercial e Vendas ───────────────────────────────────────────────────────
 
 model Produto {
-  id               String    @id @default(cuid())
-  tenantId         String
-  nome             String
-  categoria        String
-  preco            Float
-  custo            Float
-  margem           Float
-  estoqueAtual     Int       @default(0)
-  estoqueMinimo    Int       @default(5)
-  mediaVendaMensal Int       @default(0)
-  scorePotencial   Int       @default(50)
-  risco            String    @default("ok")
-  status           String    @default("ativo")
-  diasParado       Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  tenantId           String
+  nome               String
+  categoria          String
+  preco              Float
+  custo              Float
+  margem             Float
+  estoqueAtual       Int       @default(0)
+  estoqueMinimo      Int       @default(5)
+  mediaVendaMensal   Int       @default(0)
+  scorePotencial     Int       @default(50)
+  risco              String    @default("ok")
+  status             String    @default("ativo")
+  diasParado         Int       @default(0)
+  demandaPrevista30d Int       @default(0)
+  dataRupturaEstoque DateTime?
+  sugestaoReposicao  Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  itensVenda       ItemVenda[]
-  itensMateriaisOS OsItemMaterial[]
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  itensVenda        ItemVenda[]
+  itensMateriaisOS  OsItemMaterial[]
+  bom               BOM?
+  ordensProducao    OrdemProducao[]
+  lotes             Lote[]
+  b2bPropostaItens  B2BPropostaItem[]
+  ResultadoForecast ResultadoForecast[]
+  Acuracia          Acuracia[]
+  AlertaInteligente AlertaInteligente[]
+
   @@index([tenantId])
 }
 
 model Venda {
-  id              String      @id @default(cuid())
+  id              String   @id @default(cuid())
   tenantId        String
   clienteId       String?
   vendedor        String?
   total           Float
-  status          String      @default("fechado")
+  status          String   @default("fechado")
   metodoPagamento String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente         Cliente?    @relation(fields: [clienteId], references: [id])
-  itens           ItemVenda[]
+  tenant  Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente Cliente?    @relation(fields: [clienteId], references: [id])
+  itens   ItemVenda[]
+
   @@index([tenantId])
 }
 
 model ItemVenda {
-  id         String   @id @default(cuid())
+  id         String @id @default(cuid())
   tenantId   String
   vendaId    String
   produtoId  String
   quantidade Int
   preco      Float
 
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  venda      Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  produto    Produto  @relation(fields: [produtoId], references: [id])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  venda   Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produto Produto @relation(fields: [produtoId], references: [id])
+
   @@index([tenantId])
 }
 
 model LancamentoFinanceiro {
-  id         String   @id @default(cuid())
-  tenantId   String
-  descricao  String
-  valor      Float
-  tipo       String   // receita, despesa
-  status     String   // pago, pendente, vencido
-  dataVenc   DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  descricao String
+  valor     Float
+  tipo      String // receita, despesa
+  status    String // pago, pendente, vencido
+  dataVenc  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cobrancas  OsCobranca[]
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cobrancas OsCobranca[]
+
   @@index([tenantId])
 }
 
@@ -428,8 +494,9 @@ model Negociacao {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente            Cliente   @relation(fields: [clienteId], references: [id])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+
   @@index([tenantId])
 }
 
@@ -447,58 +514,61 @@ model Tarefa {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente     Cliente?  @relation(fields: [clienteId], references: [id])
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente Cliente? @relation(fields: [clienteId], references: [id])
+
   @@index([tenantId])
 }
 
 model Agendamento {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   tenantId      String
   titulo        String
   descricao     String?
   data          DateTime
-  duracao       Int       @default(60)
-  tipo          String    @default("reuniao")
-  status        String    @default("agendado")
-  responsavel   String?   @default("Sistema")
+  duracao       Int      @default(60)
+  tipo          String   @default("reuniao")
+  status        String   @default("agendado")
+  responsavel   String?  @default("Sistema")
   clienteId     String?
   googleEventId String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 // ─── Operacional ──────────────────────────────────────────────────────────────
 
 model Equipe {
-  id          String    @id @default(cuid())
-  tenantId    String
-  nome        String
-  status      String    @default("ativa")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  nome      String
+  status    String   @default("ativa")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  tecnicos    Tecnico[]
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tecnicos Tecnico[]
+
   @@index([tenantId])
 }
 
 model Tecnico {
-  id            String    @id @default(cuid())
-  tenantId      String
-  equipeId      String?
-  nome          String
-  email         String    
-  telefone      String?
-  status        String    @default("ativo")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  equipeId  String?
+  nome      String
+  email     String
+  telefone  String?
+  status    String   @default("ativo")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  equipe        Equipe?   @relation(fields: [equipeId], references: [id], onDelete: SetNull)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  equipe        Equipe?        @relation(fields: [equipeId], references: [id], onDelete: SetNull)
   ordensServico OrdemServico[]
 
   @@unique([tenantId, email])
@@ -506,34 +576,36 @@ model Tecnico {
 }
 
 model Veiculo {
-  id            String    @id @default(cuid())
-  tenantId      String
-  placa         String
-  modelo        String
-  marca         String?
-  ano           Int?
-  status        String    @default("ativo")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  placa     String
+  modelo    String
+  marca     String?
+  ano       Int?
+  status    String   @default("ativo")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   manutencoes   ManutencaoVeiculo[]
   ordensServico OrdemServico[]
+
   @@index([tenantId])
 }
 
 model ManutencaoVeiculo {
-  id            String    @id @default(cuid())
-  tenantId      String
-  veiculoId     String
-  descricao     String
-  data          DateTime
-  custo         Float     @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  tenantId  String
+  veiculoId String
+  descricao String
+  data      DateTime
+  custo     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  veiculo       Veiculo   @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  veiculo Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -562,27 +634,27 @@ model OrdemServico {
   custoMaterial       Float     @default(0)
   statusFaturamento   String    @default("nao_faturada") // nao_faturada, faturada, paga
   motivoCancelamento  String?
-  equipesJson         String?   // JSON array de equipeId[]
+  equipesJson         String? // JSON array de equipeId[]
   observacoesInternas String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  tenant              Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cliente             Cliente          @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  unidade             Unidade          @relation(fields: [unidadeId], references: [id], onDelete: Restrict)
-  endereco            Endereco         @relation(fields: [enderecoId], references: [id], onDelete: Restrict)
-  tecnico             Tecnico          @relation(fields: [tecnicoId], references: [id], onDelete: Restrict)
-  contrato            Contrato?        @relation(fields: [contratoId], references: [id], onDelete: SetNull)
-  ativo               Ativo?           @relation(fields: [ativoId], references: [id], onDelete: SetNull)
-  veiculo             Veiculo?         @relation(fields: [veiculoId], references: [id], onDelete: SetNull)
-  execucao            OsExecucao?
-  transicoes          OsTransicao[]
-  naoConformidades    OsNaoConformidade[]
-  retornos            OsRetorno[]      @relation("OSOrigem")
-  retornoOrigem       OsRetorno?       @relation("OSRetorno")
-  itensMateriaisOS    OsItemMaterial[]
-  fotos               OsFoto[]
-  cobranca            OsCobranca?
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente          Cliente             @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  unidade          Unidade             @relation(fields: [unidadeId], references: [id], onDelete: Restrict)
+  endereco         Endereco            @relation(fields: [enderecoId], references: [id], onDelete: Restrict)
+  tecnico          Tecnico             @relation(fields: [tecnicoId], references: [id], onDelete: Restrict)
+  contrato         Contrato?           @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  ativo            Ativo?              @relation(fields: [ativoId], references: [id], onDelete: SetNull)
+  veiculo          Veiculo?            @relation(fields: [veiculoId], references: [id], onDelete: SetNull)
+  execucao         OsExecucao?
+  transicoes       OsTransicao[]
+  naoConformidades OsNaoConformidade[]
+  retornos         OsRetorno[]         @relation("OSOrigem")
+  retornoOrigem    OsRetorno?          @relation("OSRetorno")
+  itensMateriaisOS OsItemMaterial[]
+  fotos            OsFoto[]
+  cobranca         OsCobranca?
 
   @@unique([tenantId, numeroOS])
   @@index([tenantId])
@@ -599,17 +671,18 @@ model OsExecucao {
   dataFim             DateTime?
   latitude            String?
   longitude           String?
-  checklistJson       String?   // JSON: [{id, descricao, concluido, observacao}]
+  checklistJson       String? // JSON: [{id, descricao, concluido, observacao}]
   observacoesTecnicas String?
-  materiaisJson       String?   // legado — substituído por OsItemMaterial
-  fotosJson           String?   // legado — substituído por OsFoto
+  materiaisJson       String? // legado — substituído por OsItemMaterial
+  fotosJson           String? // legado — substituído por OsFoto
   assinaturaBase64    String?
   checklistPct        Int       @default(0) // 0-100%
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  tenant              Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico        OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -625,8 +698,9 @@ model OsTransicao {
   usuarioId      String?
   criadoEm       DateTime @default(now())
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([ordemServicoId])
 }
@@ -634,22 +708,23 @@ model OsTransicao {
 // ─── Não Conformidades ────────────────────────────────────────────────────────
 
 model OsNaoConformidade {
-  id              String   @id @default(cuid())
-  tenantId        String
-  ordemServicoId  String
-  descricao       String
-  categoria       String   @default("tecnica") // tecnica, seguranca, qualidade, cliente
-  gravidade       String   @default("media")   // critica, alta, media, baixa
-  acaoCorretiva   String?
-  responsavelId   String?
-  resolvidaEm     DateTime?
-  status          String   @default("aberta") // aberta, em_tratamento, resolvida
-  fotosJson       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(cuid())
+  tenantId       String
+  ordemServicoId String
+  descricao      String
+  categoria      String    @default("tecnica") // tecnica, seguranca, qualidade, cliente
+  gravidade      String    @default("media") // critica, alta, media, baixa
+  acaoCorretiva  String?
+  responsavelId  String?
+  resolvidaEm    DateTime?
+  status         String    @default("aberta") // aberta, em_tratamento, resolvida
+  fotosJson      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico    OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([ordemServicoId])
 }
@@ -657,17 +732,18 @@ model OsNaoConformidade {
 // ─── Retornos ─────────────────────────────────────────────────────────────────
 
 model OsRetorno {
-  id             String   @id @default(cuid())
-  tenantId       String
-  osOrigemId     String
-  osRetornoId    String   @unique
-  motivo         String
-  responsabilidade String @default("empresa") // empresa, cliente, terceiro
-  createdAt      DateTime @default(now())
+  id               String   @id @default(cuid())
+  tenantId         String
+  osOrigemId       String
+  osRetornoId      String   @unique
+  motivo           String
+  responsabilidade String   @default("empresa") // empresa, cliente, terceiro
+  createdAt        DateTime @default(now())
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  osOrigem       OrdemServico @relation("OSOrigem", fields: [osOrigemId], references: [id], onDelete: Cascade)
-  osRetorno      OrdemServico @relation("OSRetorno", fields: [osRetornoId], references: [id], onDelete: Cascade)
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  osOrigem  OrdemServico @relation("OSOrigem", fields: [osOrigemId], references: [id], onDelete: Cascade)
+  osRetorno OrdemServico @relation("OSRetorno", fields: [osRetornoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -679,15 +755,16 @@ model OsModelo {
   nome            String
   descricao       String?
   tipoAtendimento String
-  checklistJson   String?  // checklist pré-definido
-  materiaisJson   String?  // materiais padrão
+  checklistJson   String? // checklist pré-definido
+  materiaisJson   String? // materiais padrão
   prazoSLAHoras   Int      @default(24)
   valorPadrao     Float    @default(0)
   ativo           Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -706,9 +783,10 @@ model OsItemMaterial {
   origem         String   @default("estoque") // estoque, externo
   createdAt      DateTime @default(now())
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
-  produto        Produto?     @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  produto      Produto?     @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
   @@index([tenantId])
   @@index([ordemServicoId])
 }
@@ -727,8 +805,9 @@ model OsFoto {
   capturadoEm    DateTime @default(now())
   usuarioId      String?
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([ordemServicoId])
 }
@@ -736,43 +815,45 @@ model OsFoto {
 // ─── Cobrança gerada a partir de OS ──────────────────────────────────────────
 
 model OsCobranca {
-  id                   String   @id @default(cuid())
-  tenantId             String
-  ordemServicoId       String   @unique
-  lancamentoId         String?  @unique
-  valorFaturado        Float
-  dataEmissao          DateTime @default(now())
-  dataPagamento        DateTime?
-  status               String   @default("emitida") // emitida, paga, cancelada
-  observacoes          String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id             String    @id @default(cuid())
+  tenantId       String
+  ordemServicoId String    @unique
+  lancamentoId   String?   @unique
+  valorFaturado  Float
+  dataEmissao    DateTime  @default(now())
+  dataPagamento  DateTime?
+  status         String    @default("emitida") // emitida, paga, cancelada
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ordemServico         OrdemServico         @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
-  lancamento           LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordemServico OrdemServico          @relation(fields: [ordemServicoId], references: [id], onDelete: Cascade)
+  lancamento   LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+
   @@index([tenantId])
 }
 
 // ─── Recorrências de OS ───────────────────────────────────────────────────────
 
 model RecorrenciaOS {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   tenantId        String
   modeloOsId      String?
   clienteId       String
   titulo          String
-  periodicidade   String   // diaria, semanal, quinzenal, mensal, trimestral, semestral, anual
-  diaSemana       Int?     // 0=dom..6=sab
-  diaMes          Int?     // 1-31
+  periodicidade   String // diaria, semanal, quinzenal, mensal, trimestral, semestral, anual
+  diaSemana       Int? // 0=dom..6=sab
+  diaMes          Int? // 1-31
   proximaExecucao DateTime
   ultimaExecucao  DateTime?
-  ativa           Boolean  @default(true)
+  ativa           Boolean   @default(true)
   observacoes     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -782,14 +863,15 @@ model FiltroSalvo {
   id         String   @id @default(cuid())
   tenantId   String
   usuarioId  String
-  modulo     String   // os, financeiro, clientes, etc.
+  modulo     String // os, financeiro, clientes, etc.
   nome       String
-  filtroJson String   // JSON com os filtros aplicados
+  filtroJson String // JSON com os filtros aplicados
   padrao     Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([tenantId, usuarioId, modulo])
 }
@@ -799,7 +881,7 @@ model FiltroSalvo {
 model Integracao {
   id            String    @id @default(cuid())
   tenantId      String
-  provedor      String    
+  provedor      String
   accessToken   String?
   refreshToken  String?
   expiraEm      DateTime?
@@ -808,94 +890,99 @@ model Integracao {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, provedor])
   @@index([tenantId])
 }
 
 model ConversaWA {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   tenantId       String
   telefone       String
   nome           String
   empresa        String?
-  status         String       @default("novo")
+  status         String   @default("novo")
   atendenteId    String?
   clienteId      String?
   ultimaMensagem String?
-  unreadCount    Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  unreadCount    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  mensagens      MensagemWA[]
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  mensagens MensagemWA[]
+
   @@index([tenantId])
 }
 
 model MensagemWA {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
   conversaId  String
-  tipo        String      // entrada, saida
+  tipo        String // entrada, saida
   conteudo    String
-  statusEnvio String?     // enviado, entregue, lido
-  createdAt   DateTime    @default(now())
+  statusEnvio String? // enviado, entregue, lido
+  createdAt   DateTime @default(now())
 
-  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  conversa    ConversaWA  @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversa ConversaWA @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 model FluxoIA {
-  id          String    @id @default(cuid())
-  tenantId    String
-  nome        String
-  descricao   String?
-  ativo       Boolean   @default(false)
-  gatilho     String
-  disparos    Int       @default(0)
-  resolucoes  Int       @default(0)
-  nodesJson   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  tenantId   String
+  nome       String
+  descricao  String?
+  ativo      Boolean  @default(false)
+  gatilho    String
+  disparos   Int      @default(0)
+  resolucoes Int      @default(0)
+  nodesJson  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 model Campanha {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   tenantId        String
   nome            String
   descricao       String?
-  status          String    @default("rascunho")
-  canal           String    @default("whatsapp")
-  contatos        Int       @default(0)
-  criadaPorIA     Boolean   @default(false)
-  receitaGerada   Float     @default(0)
-  receitaEsperada Float     @default(0)
+  status          String   @default("rascunho")
+  canal           String   @default("whatsapp")
+  contatos        Int      @default(0)
+  criadaPorIA     Boolean  @default(false)
+  receitaGerada   Float    @default(0)
+  receitaEsperada Float    @default(0)
   mensagemPadrao  String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
 model AgentLog {
-  id          String   @id @default(cuid())
-  tenantId    String
-  sessionId   String
-  mensagem    String
-  agente      String
-  acao        String
-  entidades   String   
-  resultado   String   
-  sucesso     Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  tenantId  String
+  sessionId String
+  mensagem  String
+  agente    String
+  acao      String
+  entidades String
+  resultado String
+  sucesso   Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
 }
 
@@ -905,11 +992,820 @@ model AcaoPendenteIA {
   agente      String
   intencao    String
   descricao   String
-  payloadJson String   
-  status      String   @default("pendente") 
+  payloadJson String
+  status      String   @default("pendente")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
+}
+
+// ─── Alertas Preditivos (IA) ──────────────────────────────────────────────────
+
+model AlertaPreditivo {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tipo             String // estoque, vendas, cliente
+  titulo           String
+  descricao        String
+  severidade       String   @default("media") // critica, alta, media, baixa
+  status           String   @default("ativo") // ativo, resolvido, ignorado
+  dadoReferenciaId String? // id do produto ou cliente
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, tipo])
+}
+
+// ─── CRM e Vendas Estendido ───────────────────────────────────────────────────
+
+model Lead {
+  id          String   @id @default(cuid())
+  tenantId    String
+  nome        String
+  empresa     String?
+  email       String?
+  telefone    String?
+  origem      String?
+  status      String   @default("novo") // novo, qualificado, perdido, convertido
+  temperatura String   @default("fria") // fria, morna, quente
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+// ─── Portal B2B ───────────────────────────────────────────────────────────────
+
+model B2BOportunidade {
+  id            String    @id @default(cuid())
+  tenantId      String
+  clienteId     String
+  titulo        String
+  valorEstimado Float     @default(0)
+  probabilidade Int       @default(50)
+  previsaoFecho DateTime?
+  status        String    @default("qualificacao") // qualificacao, proposta, negociacao, ganho, perdido
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente    Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  propostas  B2BProposta[]
+  atividades B2BAtividade[]
+
+  @@index([tenantId])
+}
+
+model B2BProposta {
+  id             String   @id @default(cuid())
+  tenantId       String
+  oportunidadeId String
+  numero         String
+  status         String   @default("rascunho")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  oportunidade B2BOportunidade     @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  versoes      B2BPropostaVersao[]
+
+  @@index([tenantId])
+}
+
+model B2BPropostaVersao {
+  id            String   @id @default(cuid())
+  propostaId    String
+  versao        Int      @default(1)
+  valorTotal    Float
+  descontoGeral Float    @default(0)
+  frete         Float    @default(0)
+  condicaoPgto  String?
+  vigente       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  proposta B2BProposta       @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  itens    B2BPropostaItem[]
+}
+
+model B2BPropostaItem {
+  id            String @id @default(cuid())
+  versaoId      String
+  produtoId     String
+  quantidade    Float
+  precoUnitario Float
+  desconto      Float  @default(0)
+  subtotal      Float
+
+  versao  B2BPropostaVersao @relation(fields: [versaoId], references: [id], onDelete: Cascade)
+  produto Produto           @relation(fields: [produtoId], references: [id], onDelete: Restrict)
+}
+
+model B2BAtividade {
+  id             String   @id @default(cuid())
+  tenantId       String
+  oportunidadeId String
+  tipo           String // ligacao, reuniao, email
+  descricao      String
+  dataHora       DateTime
+  concluida      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  oportunidade B2BOportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+// ─── Engenharia e Qualidade ───────────────────────────────────────────────────
+
+model MateriaPrima {
+  id            String   @id @default(cuid())
+  tenantId      String
+  nome          String
+  codigo        String?
+  unidadeMedida String   @default("un")
+  estoqueAtual  Float    @default(0)
+  estoqueMinimo Float    @default(0)
+  custoUnitario Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bomItems BomItem[]
+  lotes    Lote[]
+
+  @@index([tenantId])
+}
+
+model BOM {
+  id        String   @id @default(cuid())
+  tenantId  String
+  produtoId String   @unique
+  versao    String   @default("1.0")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  produto Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  itens   BomItem[]
+
+  @@index([tenantId])
+}
+
+model BomItem {
+  id             String @id @default(cuid())
+  bomId          String
+  materiaPrimaId String
+  quantidade     Float
+
+  bom          BOM          @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  materiaPrima MateriaPrima @relation(fields: [materiaPrimaId], references: [id], onDelete: Restrict)
+}
+
+// ─── PCP / Produção ───────────────────────────────────────────────────────────
+
+model OrdemProducao {
+  id         String    @id @default(cuid())
+  tenantId   String
+  numero     String
+  produtoId  String
+  quantidade Int
+  status     String    @default("planejada") // planejada, em_andamento, concluida, cancelada
+  dataInicio DateTime?
+  dataFim    DateTime?
+  prioridade String    @default("media")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+}
+
+// ─── Compras e Suprimentos ────────────────────────────────────────────────────
+
+model Fornecedor {
+  id             String   @id @default(cuid())
+  tenantId       String
+  nome           String
+  cnpj           String?
+  email          String?
+  telefone       String?
+  notaQualidade  Int      @default(100)
+  prazoMedioDias Int      @default(15)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ordensCompra OrdemCompra[]
+
+  @@index([tenantId])
+}
+
+model OrdemCompra {
+  id           String    @id @default(cuid())
+  tenantId     String
+  fornecedorId String
+  numero       String
+  status       String    @default("pendente") // pendente, aprovada, recebida, cancelada
+  valorTotal   Float
+  dataPrevisao DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+}
+
+// ─── Logística e Estoque Avançado ─────────────────────────────────────────────
+
+model Lote {
+  id             String    @id @default(cuid())
+  tenantId       String
+  materiaPrimaId String?
+  produtoId      String?
+  numeroLote     String
+  quantidade     Float
+  dataFabricacao DateTime?
+  dataValidade   DateTime?
+  status         String    @default("aprovado") // quarentena, aprovado, rejeitado
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  materiaPrima MateriaPrima? @relation(fields: [materiaPrimaId], references: [id], onDelete: Cascade)
+  produto      Produto?      @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+// ─── Engenharia de Dados & Machine Learning ─────────────────
+model ImportacaoLog {
+  id         String   @id @default(cuid())
+  tenantId   String
+  loteId     String
+  tabelaAlvo String
+  status     String // Sucesso, Falha Parcial
+  erros      String? // Armazenado como JSON string (ou String se SQLite)
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model ModeloForecast {
+  id            String  @id @default(cuid())
+  tenantId      String
+  nomeAlgoritmo String // "Holt-Winters", "EMA"
+  versao        String // "v1.0.2"
+  parametros    String // Json string
+  ativo         Boolean @default(true)
+
+  resultados ResultadoForecast[]
+  tenant     Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model ResultadoForecast {
+  id              String   @id @default(cuid())
+  tenantId        String
+  produtoId       String
+  modeloId        String
+  periodoAlvo     DateTime // "2026-08-01"
+  demandaPrevista Float
+  limiteInferior  Float
+  limiteSuperior  Float
+  confiancaMat    Float // 0.0 a 1.0 baseada em desvio padrão
+  dataCalculo     DateTime @default(now())
+
+  produto Produto        @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  modelo  ModeloForecast @relation(fields: [modeloId], references: [id], onDelete: Cascade)
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model Acuracia {
+  id                String   @id @default(cuid())
+  tenantId          String
+  produtoId         String
+  periodoReferencia DateTime
+  demandaPrevista   Float
+  demandaReal       Float
+  erroAbsoluto      Float // |Real - Previsto|
+  mape              Float // % de Erro Absoluto Médio
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ─── Alertas e Ações ───────────────────────────────────────
+
+model AlertaInteligente {
+  id           String   @id @default(cuid())
+  tenantId     String
+  produtoId    String?
+  clienteId    String?
+  tipo         String // RUPTURA, EXCESSO, CHURN_CLIENTE
+  prioridade   String // CRITICO, ALTO, MEDIO
+  impactoReais Float
+  status       String   @default("NOVO")
+  contextoIA   String? // Texto explicativo da DeepSeek
+  criadoEm     DateTime @default(now())
+
+  acoes   AcaoAlerta[]
+  produto Produto?     @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  cliente Cliente?     @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tenant  Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model AcaoAlerta {
+  id           String   @id @default(cuid())
+  alertaId     String
+  tipoAcao     String // "GERAR_OP", "CRIAR_TAREFA"
+  referenciaId String? // ID da OP ou Tarefa gerada
+  executadaEm  DateTime @default(now())
+
+  alerta AlertaInteligente @relation(fields: [alertaId], references: [id], onDelete: Cascade)
+}
+
+// ─── IA e Simuladores ──────────────────────────────────────
+
+model CenarioSimulado {
+  id         String   @id @default(cuid())
+  tenantId   String
+  nome       String
+  parametros String // Json string
+  resultados String // Json string
+  usuarioId  String
+  criadoEm   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model LogAuditoriaIA {
+  id             String   @id @default(cuid())
+  tenantId       String
+  promptBackend  String
+  dadosInjetados String // Json string
+  respostaRaw    String
+  tokens         Int
+  custo          Float
+  usuarioId      String
+  criadoEm       DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ─── RABISCO: ERP de Arquitetura e Obras ──────────────────────────────────────
+
+model ProjetoArq {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  clienteId          String
+  nome               String
+  tipo               String    @default("residencial")
+  imovelNovo         Boolean   @default(true)
+  metragem           Float?
+  ambientesJson      String?
+  status             String    @default("briefing")
+  etapaAtual         String?
+  percentualAvanco   Int       @default(0)
+  dataInicio         DateTime?
+  prazoEstimado      DateTime?
+  prazoRevisto       DateTime?
+  orcamentoPrevisto  Float     @default(0)
+  orcamentoRealizado Float     @default(0)
+  responsavelId      String?
+  equipeJson         String?
+  observacoes        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  briefing       BriefingArq?
+  etapas         EtapaProjetoArq[]
+  versoes        VersaoProjeto[]
+  aprovacoes     AprovacaoClienteArq[]
+  alteracoes     AlteracaoProjetoArq[]
+  obra           ObraArq?
+  documentos     DocumentoArq[]
+  itensCompra    ItemListaCompraArq[]
+  orcamentoItens OrcamentoItemArq[]
+  cotacoes       CotacaoArq[]
+
+  @@index([tenantId])
+  @@index([tenantId, clienteId])
+  @@index([tenantId, status])
+}
+
+model BriefingArq {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  projetoId           String    @unique
+  clienteId           String
+  perfilJson          String?
+  estilosJson         String?
+  restricoesJson      String?
+  ambientesJson       String?
+  referenciasJson     String?
+  itensIndispensaveis String?
+  itensProscritos     String?
+  orcamento           Float?
+  prazo               String?
+  assinado            Boolean   @default(false)
+  assinadoEm          DateTime?
+  resumoIA            String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model EtapaProjetoArq {
+  id               String    @id @default(cuid())
+  tenantId         String
+  projetoId        String
+  nome             String
+  ordem            Int
+  status           String    @default("pendente")
+  responsavelId    String?
+  prazo            DateTime?
+  prazoRevisto     DateTime?
+  percentualAvanco Int       @default(0)
+  descricao        String?
+  dependeDeId      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model VersaoProjeto {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  projetoId          String
+  tipo               String
+  versao             String
+  descricaoAlteracao String?
+  responsavelId      String?
+  aprovadoCliente    Boolean   @default(false)
+  aprovadoEm         DateTime?
+  impactoPrazoDias   Int       @default(0)
+  impactoFinanceiro  Float     @default(0)
+  arquivoPath        String?
+  arquivoNome        String?
+  createdAt          DateTime  @default(now())
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model AprovacaoClienteArq {
+  id          String    @id @default(cuid())
+  tenantId    String
+  projetoId   String
+  clienteId   String
+  tipo        String
+  item        String
+  versao      String?
+  status      String    @default("aguardando_envio")
+  observacao  String?
+  impactoJson String?
+  arquivoPath String?
+  aprovadoEm  DateTime?
+  clienteNome String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model AlteracaoProjetoArq {
+  id                String   @id @default(cuid())
+  tenantId          String
+  projetoId         String
+  clienteId         String
+  descricao         String
+  itensAfetadosJson String?
+  impactoPrazoDias  Int      @default(0)
+  impactoFinanceiro Float    @default(0)
+  status            String   @default("solicitado")
+  geraAditivo       Boolean  @default(false)
+  aditivoAssinado   Boolean  @default(false)
+  resumoIA          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model DocumentoArq {
+  id           String    @id @default(cuid())
+  tenantId     String
+  projetoId    String
+  tipo         String
+  nome         String
+  arquivoPath  String?
+  arquivoNome  String?
+  tamanhoBytes Int?
+  versao       String?
+  assinado     Boolean   @default(false)
+  assinadoEm   DateTime?
+  validade     DateTime?
+  observacoes  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model ObraArq {
+  id                   String    @id @default(cuid())
+  tenantId             String
+  projetoId            String    @unique
+  clienteId            String
+  nome                 String
+  endereco             String?
+  metragem             Float?
+  status               String    @default("nao_iniciada")
+  percentualFisico     Int       @default(0)
+  percentualFinanceiro Int       @default(0)
+  dataInicio           DateTime?
+  dataInicioReal       DateTime?
+  prazoEstimado        DateTime?
+  prazoRevisto         DateTime?
+  diasAtraso           Int       @default(0)
+  orcamentoPrevisto    Float     @default(0)
+  valorComprometido    Float     @default(0)
+  valorRealizado       Float     @default(0)
+  etapaAtual           String?
+  responsavelId        String?
+  observacoes          String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto    ProjetoArq           @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  atividades AtividadeObra[]
+  diarios    DiarioObra[]
+  visitas    VisitaTecnicaArq[]
+  naoConfs   NaoConformidadeArq[]
+  relatorios RelatorioObra[]
+
+  @@index([tenantId])
+  @@index([tenantId, clienteId])
+  @@index([tenantId, status])
+}
+
+model AtividadeObra {
+  id               String    @id @default(cuid())
+  tenantId         String
+  obraId           String
+  nome             String
+  categoria        String?
+  status           String    @default("nao_iniciado")
+  responsavelId    String?
+  fornecedorNome   String?
+  dataInicioPrev   DateTime?
+  dataFimPrev      DateTime?
+  dataInicioReal   DateTime?
+  dataFimReal      DateTime?
+  diasAtraso       Int       @default(0)
+  percentualAvanco Int       @default(0)
+  dependeDeId      String?
+  ordem            Int       @default(0)
+  observacoes      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  obra   ObraArq @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([obraId])
+}
+
+model DiarioObra {
+  id                     String   @id @default(cuid())
+  tenantId               String
+  obraId                 String
+  data                   DateTime @default(now())
+  responsavelId          String?
+  responsavelNome        String?
+  condicoes              String?
+  equipePresente         String?
+  atividadesExecutadas   String?
+  materiaisEntregues     String?
+  problemasIdentificados String?
+  decisoesTomadas        String?
+  proximosPassos         String?
+  fotosJson              String?
+  assinado               Boolean  @default(false)
+  createdAt              DateTime @default(now())
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  obra   ObraArq @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([obraId])
+}
+
+model VisitaTecnicaArq {
+  id              String    @id @default(cuid())
+  tenantId        String
+  obraId          String
+  tipo            String    @default("tecnica")
+  dataAgendada    DateTime
+  dataRealizada   DateTime?
+  responsavelId   String?
+  responsavelNome String?
+  checklistJson   String?
+  fotosJson       String?
+  relatorio       String?
+  gpsLat          String?
+  gpsLng          String?
+  naoConfsJson    String?
+  assinado        Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  obra   ObraArq @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([obraId])
+}
+
+model NaoConformidadeArq {
+  id              String    @id @default(cuid())
+  tenantId        String
+  obraId          String
+  descricao       String
+  categoria       String    @default("qualidade")
+  gravidade       String    @default("media")
+  responsavelNome String?
+  fornecedorNome  String?
+  prazoCorrecao   DateTime?
+  custoEstimado   Float     @default(0)
+  status          String    @default("identificada")
+  solucao         String?
+  fotosJson       String?
+  resolvidaEm     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  obra   ObraArq @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([obraId])
+}
+
+model RelatorioObra {
+  id                     String   @id @default(cuid())
+  tenantId               String
+  obraId                 String
+  tipo                   String   @default("semanal")
+  dataReferencia         DateTime
+  resumoExecutivo        String?
+  percentualAvanco       Int      @default(0)
+  atividadesConcluidas   String?
+  atividadesAndamento    String?
+  proximasAtividades     String?
+  alteracoesPrazo        String?
+  alteracoesOrcamento    String?
+  pendenciasCliente      String?
+  pendenciasFornecedores String?
+  riscos                 String?
+  fotosJson              String?
+  decisoesNecessarias    String?
+  enviadoEmail           Boolean  @default(false)
+  enviadoWhatsapp        Boolean  @default(false)
+  pdfPath                String?
+  linkCompartilhavel     String?
+  createdAt              DateTime @default(now())
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  obra   ObraArq @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([obraId])
+}
+
+model OrcamentoItemArq {
+  id             String    @id @default(cuid())
+  tenantId       String
+  projetoId      String
+  obraId         String?
+  categoria      String
+  ambiente       String?
+  item           String
+  quantidade     Float     @default(1)
+  unidade        String    @default("un")
+  valorEstimado  Float     @default(0)
+  valorCotado    Float     @default(0)
+  valorAprovado  Float     @default(0)
+  valorComprado  Float     @default(0)
+  valorPago      Float     @default(0)
+  fornecedorNome String?
+  prazo          DateTime?
+  status         String    @default("estimado")
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model ItemListaCompraArq {
+  id              String    @id @default(cuid())
+  tenantId        String
+  projetoId       String
+  ambiente        String?
+  produto         String
+  marca           String?
+  modelo          String?
+  cor             String?
+  acabamento      String?
+  medidas         String?
+  quantidade      Float     @default(1)
+  fornecedorNome  String?
+  preco           Float     @default(0)
+  link            String?
+  fotoUrl         String?
+  status          String    @default("em_pesquisa")
+  dataNecessaria  DateTime?
+  responsavelNome String?
+  notaFiscal      String?
+  observacoes     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
+}
+
+model CotacaoArq {
+  id                String    @id @default(cuid())
+  tenantId          String
+  projetoId         String
+  descricao         String
+  fornecedorNome    String?
+  fornecedorContato String?
+  valor             Float     @default(0)
+  prazo             String?
+  condicaoPagamento String?
+  frete             Float     @default(0)
+  garantia          String?
+  validade          DateTime?
+  status            String    @default("solicitada")
+  itensJson         String?
+  observacoes       String?
+  recomendadoIA     Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projeto ProjetoArq @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([projetoId])
 }

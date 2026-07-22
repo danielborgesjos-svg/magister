@@ -39,6 +39,7 @@ export default function ClientesPage() {
   const [filtroStatus, setFiltroStatus] = useState("todos")
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
   const [modalNovo, setModalNovo] = useState(false)
+  const [modalVisao360, setModalVisao360] = useState(false)
   const [novoCliente, setNovoCliente] = useState({ 
     nome: "", empresa: "", segmento: "", cidade: "", status: "lead",
     contatos: [{ nome: "", telefone: "", email: "", setor: "" }],
@@ -270,6 +271,12 @@ export default function ClientesPage() {
 
             {/* Ações */}
             <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => setModalVisao360(true)}
+                className="w-full py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Eye className="w-4 h-4" /> Abrir Visão 360°
+              </button>
               <button className="w-full py-2.5 bg-green-positive/10 text-green-positive border border-green-positive/20 rounded-xl text-sm font-semibold hover:bg-green-positive/20 transition-colors flex items-center justify-center gap-2">
                 <MessageCircle className="w-4 h-4" /> Mensagem WhatsApp
               </button>
@@ -280,7 +287,7 @@ export default function ClientesPage() {
                   setClienteSelecionado({ ...clienteSelecionado, status: novoStatus })
                   load()
                 }}
-                className="w-full py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-muted text-foreground border border-border rounded-xl text-sm font-semibold hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
               >
                 <Edit className="w-4 h-4" />
                 {clienteSelecionado.status === "ativo" ? "Marcar Inativo" : "Marcar Ativo"}
@@ -399,6 +406,103 @@ export default function ClientesPage() {
                 <Save className="w-4 h-4" />{isLoading ? "Salvando..." : "Criar Cliente"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Visão 360 */}
+      {modalVisao360 && clienteSelecionado && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between mb-6 sticky top-0 bg-card py-2 z-10 border-b border-border">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-black text-sm">
+                    {getInitials(clienteSelecionado.nome)}
+                  </div>
+                  {clienteSelecionado.nome}
+                </h2>
+                {clienteSelecionado.empresa && <p className="text-sm text-muted-foreground ml-13 mt-1">{clienteSelecionado.empresa}</p>}
+              </div>
+              <button onClick={() => setModalVisao360(false)} className="p-2 hover:bg-muted rounded-lg self-start"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Coluna Esquerda: Dados Básicos */}
+              <div className="md:col-span-1 space-y-4">
+                <div className="bg-muted/30 p-4 rounded-xl border border-border space-y-3">
+                  <h3 className="text-sm font-bold border-b border-border pb-2 mb-2">Informações Base</h3>
+                  <div><p className="text-xs text-muted-foreground">Status</p><p className="font-semibold text-sm capitalize">{clienteSelecionado.status}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Segmento</p><p className="font-semibold text-sm">{clienteSelecionado.segmento || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Cidade</p><p className="font-semibold text-sm">{clienteSelecionado.cidade || "—"}</p></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Score</p>
+                    <ScoreBadge score={clienteSelecionado.score} />
+                  </div>
+                </div>
+
+                <div className="bg-muted/30 p-4 rounded-xl border border-border space-y-3">
+                  <h3 className="text-sm font-bold border-b border-border pb-2 mb-2">Contatos</h3>
+                  <div className="flex items-center gap-2 text-sm"><User className="w-3 h-3 text-muted-foreground"/> Diretoria</div>
+                  <div className="flex items-center gap-2 text-sm"><MessageCircle className="w-3 h-3 text-muted-foreground"/> (99) 99999-9999</div>
+                </div>
+              </div>
+
+              {/* Coluna Direita: Dashboard 360 */}
+              <div className="md:col-span-2 space-y-4">
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl">
+                    <p className="text-xs text-primary font-semibold uppercase">Total Comprado (LTV)</p>
+                    <p className="text-2xl font-black text-foreground mt-1">{formatCurrency(clienteSelecionado.totalComprado)}</p>
+                  </div>
+                  <div className="bg-green-positive/5 border border-green-positive/20 p-4 rounded-xl">
+                    <p className="text-xs text-green-positive font-semibold uppercase">Saúde do Cliente</p>
+                    <p className="text-2xl font-black text-foreground mt-1">{clienteSelecionado.score >= 70 ? 'Excelente' : 'Risco de Churn'}</p>
+                  </div>
+                </div>
+
+                <div className="bg-card border border-border p-4 rounded-xl">
+                  <h3 className="text-sm font-bold border-b border-border pb-2 mb-3">Histórico de Interações (Timeline)</h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 rounded-full bg-primary mt-1.5"></div>
+                        <div className="flex-1 w-px bg-border my-1"></div>
+                      </div>
+                      <div className="pb-4">
+                        <p className="text-sm font-bold">Reunião de Fechamento</p>
+                        <p className="text-xs text-muted-foreground mb-1">Há 15 dias</p>
+                        <p className="text-sm text-foreground/80">Contrato assinado pelo portal. Onboarding agendado.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 rounded-full bg-slate-300 mt-1.5"></div>
+                        <div className="flex-1 w-px bg-border my-1"></div>
+                      </div>
+                      <div className="pb-4">
+                        <p className="text-sm font-bold">Suporte Técnico</p>
+                        <p className="text-xs text-muted-foreground mb-1">Há 2 meses</p>
+                        <p className="text-sm text-foreground/80">Dúvida sobre integração de API resolvida com sucesso.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 rounded-full bg-slate-300 mt-1.5"></div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Lead Criado</p>
+                        <p className="text-xs text-muted-foreground mb-1">Há 6 meses</p>
+                        <p className="text-sm text-foreground/80">Cliente cadastrou-se através da Landing Page B2B.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
           </div>
         </div>
       )}

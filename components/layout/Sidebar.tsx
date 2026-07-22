@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Users, ShoppingCart, Package, Megaphone, CheckSquare,
-  DollarSign, BrainCircuit, MessageCircle, BarChart3,
-  Settings, HelpCircle, Zap, Calendar, Monitor, Search, Shield,
-  ChevronRight, X, ClipboardList, FileText
+  Users, ShoppingCart, Globe, Star, Megaphone,
+  Factory, ShoppingBag, Boxes, Truck, Shield,
+  DollarSign, Receipt, Calculator, PiggyBank,
+  UserSquare, FileText, Target, LayoutDashboard, TrendingUp, BrainCircuit,
+  ChevronRight, X, Settings, Bell
 } from "lucide-react";
 
 import { cn, isColorDark } from "@/lib/utils";
@@ -16,52 +17,48 @@ import { useLayout } from "./LayoutProvider";
 
 const navGroups = [
   {
-    title: "Principal",
+    title: "Executivo",
     items: [
-      { href: "/painel",       label: "Painel Geral",   icon: Monitor },
-      { href: "/inteligencia", label: "Insights IA",    icon: Search },
+      { href: "/visao-executiva", label: "Visão Executiva",        icon: LayoutDashboard },
+      { href: "/inteligencia",    label: "Assistente de IA",       icon: BrainCircuit, badge: "IA" },
+      { href: "/ia/preditiva",    label: "Inteligência Preditiva", icon: TrendingUp, badge: "IA" },
     ]
   },
   {
-    title: "Comercial",
+    title: "CRM & Comercial",
     items: [
-      { href: "/clientes",   label: "CRM",        icon: Users },
-      { href: "/vendas",     label: "Vendas",      icon: ShoppingCart },
-      { href: "/campanhas",  label: "Marketing",   icon: Megaphone },
-      { href: "/whatsapp",   label: "WhatsApp",    icon: MessageCircle, badge: "3" },
+      { href: "/clientes",                 label: "Clientes & CRM",    icon: Users },
+      { href: "/vendas",                   label: "Vendas & Pedidos",  icon: ShoppingCart },
+      { href: "/portal-b2b",               label: "Portal B2B",        icon: Globe, badge: "Novo" },
+      { href: "/portal-b2b/oportunidades", label: "Oportunidades",     icon: Star },
+      { href: "/campanhas",                label: "Marketing",         icon: Megaphone },
     ]
   },
   {
-    title: "Operação",
+    title: "Operações",
     items: [
-      { href: "/os",      label: "Ordens de Serviço", icon: ClipboardList, badge: "3" },
-      { href: "/estoque", label: "Estoque",            icon: Package },
-      { href: "/tarefas", label: "Projetos",           icon: CheckSquare },
-      { href: "/agenda",  label: "Agenda",             icon: Calendar },
+      { href: "/producao",      label: "Produção",             icon: Factory },
+      { href: "/compras",       label: "Compras",              icon: ShoppingBag },
+      { href: "/estoque",       label: "Estoque & Armazéns",   icon: Boxes },
+      { href: "/logistica",     label: "Logística",            icon: Truck },
+      { href: "/qualidade",     label: "Qualidade",            icon: Shield },
     ]
   },
   {
     title: "Financeiro",
     items: [
-      { href: "/financeiro",          label: "Gestão Financeira", icon: DollarSign },
-      { href: "/financeiro/contas",   label: "Cobranças",        icon: BarChart3 },
-      { href: "/financeiro/contratos",label: "Contratos",        icon: FileText },
+      { href: "/financeiro",    label: "Financeiro",     icon: DollarSign },
+      { href: "/fiscal",        label: "Fiscal & NF-e",  icon: Receipt },
+      { href: "/contabilidade", label: "Contabilidade",  icon: Calculator },
+      { href: "/custos",        label: "Custos",         icon: PiggyBank },
     ]
   },
   {
-    title: "Inteligência",
+    title: "RH",
     items: [
-      { href: "/ia-preditiva", label: "IA Preditiva",   icon: BrainCircuit },
-      { href: "/relatorios",   label: "Relatórios",     icon: BarChart3 },
+      { href: "/pessoas",       label: "Pessoas (RH)",        icon: UserSquare },
     ]
   },
-  {
-    title: "Administração",
-    items: [
-      { href: "/configuracoes", label: "Configurações", icon: Settings },
-      { href: "/permissoes",    label: "Usuários",      icon: Shield },
-    ]
-  }
 ];
 
 function NavGroup({ group, pathname }: { group: typeof navGroups[number]; pathname: string }) {
@@ -94,7 +91,7 @@ function NavGroup({ group, pathname }: { group: typeof navGroups[number]; pathna
           >
             <div className="space-y-0.5 pb-2">
               {group.items.map(({ href, label, icon: Icon, badge }) => {
-                const active = pathname === href;
+                const active = pathname === href || (href !== "/" && pathname.startsWith(href));
                 return (
                   <Link
                     key={href}
@@ -103,19 +100,19 @@ function NavGroup({ group, pathname }: { group: typeof navGroups[number]; pathna
                     className={cn(
                       "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
                       active
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                        : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                     )}
                   >
                     <Icon className={cn(
                       "w-4 h-4 shrink-0 transition-colors",
-                      active ? "text-primary" : "text-muted-foreground/60 group-hover:text-muted-foreground"
+                      active ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]/60 group-hover:text-[var(--foreground)]"
                     )} />
                     <span className="flex-1 leading-none">{label}</span>
                     {badge && (
                       <span className={cn(
                         "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
-                        active ? "bg-primary/20 text-primary" : "bg-green-500/10 text-green-500"
+                        active ? "bg-blue-100 text-blue-700" : (badge === "IA" ? "bg-indigo-50 text-indigo-600 border border-indigo-100" : "bg-green-500/10 text-green-500")
                       )}>
                         {badge}
                       </span>
@@ -136,12 +133,12 @@ export function Sidebar() {
   const { isMobileMenuOpen, closeMobileMenu, sidebarColor } = useLayout();
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "w-[240px] bg-card border-r border-border flex-col h-full shrink-0 transition-transform duration-300",
+        "w-[230px] flex-col h-full shrink-0 transition-transform duration-300",
         isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 flex translate-x-0" : "hidden lg:flex"
       )}
-      style={sidebarColor ? { 
+      style={sidebarColor ? {
         backgroundColor: sidebarColor,
         ...(isColorDark(sidebarColor) ? {
           "--foreground": "#FFFFFF",
@@ -150,23 +147,23 @@ export function Sidebar() {
           "--primary": "#FFFFFF",
           "--muted": "rgba(255, 255, 255, 0.15)",
         } : {
-          "--foreground": "#111111",
-          "--muted-foreground": "#71717A",
-          "--border": "rgba(0, 0, 0, 0.15)",
-          "--primary": "#000000",
-          "--muted": "#F4F4F5",
+          "--foreground": "#0f172a", // slate-900
+          "--muted-foreground": "#64748b", // slate-500
+          "--border": "#e2e8f0", // slate-200
+          "--primary": "#0f172a",
+          "--muted": "#f8fafc", // slate-50
         })
       } as React.CSSProperties : {}}
     >
 
       {/* Logo */}
-      <div className="py-6 flex items-center justify-center px-5 shrink-0 border-b border-border/50 relative">
-        <img 
-          src="https://i.imgur.com/LCOh0gC.png" 
-          alt="Logo Jarmis" 
-          className="w-[120px] h-[120px] rounded-full object-cover shadow-md"
+      <div className="py-6 flex items-center justify-center px-5 shrink-0 relative">
+        <img
+          src="/logo-disafe.png"
+          alt="Logo DISAFE"
+          className="w-[140px] h-auto object-contain transition-transform hover:scale-105 duration-300 drop-shadow-sm"
         />
-        <button className="lg:hidden text-muted-foreground p-1 absolute right-5 top-5" onClick={closeMobileMenu}>
+        <button className="lg:hidden text-[var(--muted-foreground)] p-1 absolute right-5 top-5" onClick={closeMobileMenu}>
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -175,33 +172,36 @@ export function Sidebar() {
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
         .sidebar-scroll::-webkit-scrollbar-thumb { 
-          background: var(--muted); 
+          background: #e2e8f0; 
           border-radius: 4px; 
         }
       `}</style>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3 sidebar-scroll">
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-3 sidebar-scroll">
         {navGroups.map((group, i) => (
           <NavGroup key={i} group={group} pathname={pathname} />
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="px-3 pb-4 border-t border-border/50 pt-3 shrink-0">
-        <Link
-          href="/ajuda"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-muted-foreground font-medium hover:text-foreground hover:bg-muted/50 transition-all"
-        >
-          <HelpCircle className="w-4 h-4 opacity-70" />
-          <span>Central de Ajuda</span>
-        </Link>
-        <div className="px-3 pt-2 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground/60 font-medium">v4.0.0</span>
-          <span className="text-[10px] text-green-500 font-semibold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            Online
-          </span>
+      {/* Footer User Profile */}
+      <div className="px-4 py-4 shrink-0">
+        <div className="flex items-center gap-3 bg-[var(--muted)]/40 p-2 rounded-2xl transition-colors hover:bg-[var(--muted)]/80">
+          <div className="relative">
+            <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-transparent shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+              <img src="https://i.pravatar.cc/150?u=rafael" alt="Rafael Oliveira" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" title="Online"></div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-[var(--foreground)] truncate">Rafael Oliveira</p>
+            <p className="text-[11px] font-medium text-[var(--muted-foreground)] truncate">Diretor Executivo</p>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <button className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors">
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </aside>
